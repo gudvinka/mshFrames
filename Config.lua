@@ -3,6 +3,8 @@ local msh = ns
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
+local LibS = LibStub("LibSerialize")
+local LibD = LibStub("LibDeflate")
 
 ns.needsReload = false
 
@@ -1029,19 +1031,67 @@ function msh:OnInitialize()
     -- Загружаем БД
     self.db = LibStub("AceDB-3.0"):New("mshFrameDB", ns.defaults, true)
 
-    -- Наполняем вкладки аргументами
-    ns.options.args.partyTab.args = GetUnitGroups(self.db.profile.party)
-    ns.options.args.raidTab.args = GetUnitGroups(self.db.profile.raid)
+    -- 3. Добавляем стандартную вкладку профилей AceDB в наше дерево настроек
+    ns.options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
+    ns.options.args.profiles.name = "Профили"
+    ns.options.args.profiles.order = 100 -- Всегда в конце списка
+    ns.options.args.profiles.args.exportHeader = {
+        type = "header",
+        name = "Экспорт профиля",
+        order = 101,
+    }
+    ns.options.args.profiles.args.importExportHeader = {
+        type = "header",
+        name = "Экспорт и Импорт (строка)",
+        order = 110,
+    }
 
-    -- Регистрация
+    ns.options.args.profiles.args.exportBox = {
+        type = "input",
+        name = "Экспорт",
+        order = 111,
+        width = "full",
+        get = function() return msh:GetExportString() end,
+        set = function() end, -- поле только для чтения
+    }
+
+    ns.options.args.profiles.args.importBox = {
+        type = "input",
+        name = "Импорт",
+        order = 112,
+        width = "full",
+        get = function() return "" end,
+        set = function(info, value) msh:ImportProfileFromString(value) end,
+        confirm = true,
+        confirmText = "Вы уверены, что хотите перезаписать текущий профиль этими настройками?",
+    }
+    -- 4. Наполняем вкладки Группа/Рейд данными (через RefreshMenu)
+    self:RefreshMenu()
+
+    -- 5. Подписываемся на события смены профиля
+    -- Это заставит аддон перерисовать фреймы и меню при переключении
+    self.db.RegisterCallback(msh, "OnProfileChanged", "RefreshConfig")
+    self.db.RegisterCallback(msh, "OnProfileCopied", "RefreshConfig")
+    self.db.RegisterCallback(msh, "OnProfileReset", "RefreshConfig")
+
+    -- 6. Регистрация в AceConfig
     AceConfig:RegisterOptionsTable("mshFrame", ns.options)
     self.optionsFrame = AceConfigDialog:AddToBlizOptions("mshFrame", "mshFrame")
 
+    -- 7. Слэш-команда
     SLASH_MSH1 = "/msh"
     SlashCmdList["MSH"] = function()
         AceConfigDialog:SetDefaultSize("mshFrame", 1000, 600)
         AceConfigDialog:Open("mshFrame")
     end
+end
+
+function msh:RefreshMenu()
+    ns.options.args.partyTab.args = GetUnitGroups(self.db.profile.party)
+    ns.options.args.raidTab.args = GetUnitGroups(self.db.profile.raid)
+
+    -- Принудительно обновляем открытое окно настроек
+    LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrame")
 end
 
 -- СИНХРОНИЗАЦИЯ С CVARS (Системные настройки)
@@ -1062,5 +1112,60 @@ function msh.SyncBlizzardSettings()
 
     if CompactUnitFrameProfiles_ApplyCurrentSettings then
         CompactUnitFrameProfiles_ApplyCurrentSettings()
+    end
+end
+
+function msh:RefreshConfig()
+    -- Сначала обновляем меню
+    self:RefreshMenu()
+
+    -- Затем обновляем каждый фрейм на экране
+    for i = 1, 40 do
+        local rf = _G["CompactRaidFrame" .. i]
+        if rf and rf.mshLayersCreated then msh.ApplyStyle(rf) end
+
+        local pf = _G["CompactPartyFrameMember" .. i]
+        if pf and pf.mshLayersCreated then msh.ApplyStyle(pf) end
+    end
+
+    -- Синхронизируем системные настройки Blizzard (Health Text и т.д.)
+    if msh.SyncBlizzardSettings then msh.SyncBlizzardSettings() end
+
+    print("|cff00ff00mshFrame:|r Профиль успешно применен.")
+end
+
+function msh:GetExportString()
+    local profileData = self.db:GetCurrentProfile()     -- берем имя текущего профиля
+    local settings = self.db.profile                    -- берем сами данные
+
+    local serialized = LibS:Serialize(settings)         -- упаковываем таблицу
+    local compressed = LibD:CompressDeflate(serialized) -- сжимаем
+    local encoded = LibD:EncodeForPrint(compressed)     -- переводим в текст
+
+    return "MSH:" .. encoded                            -- добавляем префикс, чтобы аддон узнал свою строку
+end
+
+function msh:ImportProfileFromString(str)
+    if not str or str == "" then return end
+
+    -- Убираем префикс
+    local data = str:match("MSH:(.+)")
+    if not data then
+        print("Ошибка: Неверный формат строки!"); return
+    end
+
+    local decoded = LibD:DecodeForPrint(data)
+    local decompressed = LibD:DecompressDeflate(decoded)
+    local success, settings = LibS:Deserialize(decompressed)
+
+    if success then
+        -- Записываем данные в текущий профиль
+        for k, v in pairs(settings) do
+            self.db.profile[k] = v
+        end
+        self:RefreshConfig()
+        print("Профиль успешно импортирован!")
+    else
+        print("Ошибка при десериализации данных.")
     end
 end

@@ -23,6 +23,9 @@ Libs\Ace3\AceDBOptions-3.0\AceDBOptions-3.0.xml
 # 5. Виджеты
 Libs\Ace3\AceGUI-3.0-SharedMediaWidgets\widget.xml
 
+Libs\LibSerialize\LibSerialize.lua
+Libs\LibDeflate\LibDeflate.lua
+
 # Логика
 Config.lua
 Parser.lua
