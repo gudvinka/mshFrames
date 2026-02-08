@@ -1,4 +1,4 @@
-# mshFrames v0.4
+# mshFrames v0.6
 
 If you have any suggestions or features you'd like to see regarding raid frames, feel free to share. Please keep in mind the **core concept**: this addon focuses on providing a simplified, lightweight version of the default UI with minimal customization and a "clean-out-of-the-box" approach.
 
