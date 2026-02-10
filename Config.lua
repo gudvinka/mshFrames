@@ -800,8 +800,8 @@ local function GetUnitGroups(path)
             args = {
                 buffs = { name = "Баффы", type = "group", order = 1, args = buffsArgs },
                 debuffs = { name = "Дебаффы", type = "group", order = 2, args = debuffsArgs },
-                dispel = { name = "Диспел", type = "group", order = 3, args = dispelsArgs },
-                bigSave = { name = "Сейв", type = "group", order = 4, args = bigSaveArgs },
+                dispel = { name = "Иконка диспела", type = "group", order = 3, args = dispelsArgs },
+                bigSave = { name = "Центральный Сейв", type = "group", order = 4, args = bigSaveArgs },
             }
         },
 
@@ -886,15 +886,15 @@ local function GetUnitGroups(path)
                         Refresh()
                     end,
                 },
-                showRoleIcon = {
+                showCustomRoleIcon = {
                     type = "toggle",
                     name = "Включить кастомные иконки ролей",
                     desc = "Отображает иконку танка, целителя или урона",
                     order = 1,
                     disabled = function() return path.useBlizzRole end,
-                    get = function(_) return path.showRoleIcon end,
+                    get = function(_) return path.showCustomRoleIcon end,
                     set = function(_, v)
-                        path.showRoleIcon = v; Refresh()
+                        path.showCustomRoleIcon = v; Refresh()
                     end,
                 },
                 showRoleTank = {
@@ -902,7 +902,7 @@ local function GetUnitGroups(path)
                     name = "Танк",
                     order = 1.1,
                     width = "half",
-                    disabled = function() return path.useBlizzRole or not path.showRoleIcon end,
+                    disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleTank end,
                     set = function(_, v)
                         path.showRoleTank = v; Refresh()
@@ -913,7 +913,7 @@ local function GetUnitGroups(path)
                     name = "Хил",
                     order = 1.2,
                     width = "half",
-                    disabled = function() return path.useBlizzRole or not path.showRoleIcon end,
+                    disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleHeal end,
                     set = function(_, v)
                         path.showRoleHeal = v; Refresh()
@@ -924,7 +924,7 @@ local function GetUnitGroups(path)
                     name = "ДД",
                     order = 1.3,
                     width = "half",
-                    disabled = function() return path.useBlizzRole or not path.showRoleIcon end,
+                    disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleDamager end,
                     set = function(_, v)
                         path.showRoleDamager = v; Refresh()
@@ -987,12 +987,15 @@ end
 
 -- Дефолты
 local defaultProfile = {
-    -- Имя
+    -- General
     texture = "Flat",
+    showGroups = true,
+    hoverAlpha = 0.2,
+
+    -- Имя
     fontName = "Default",
-    fontStatus = "Default",
-    fontSizeName = 13,
     nameOutline = "OUTLINE",
+    fontSizeName = 13,
     shortenNames = true,
     nameLength = 5,
     namePoint = "TOP",
@@ -1000,51 +1003,82 @@ local defaultProfile = {
     nameY = -5,
 
     -- Здоровье (CVars)
-    fontSizeStatus = 10,
+    fontStatus = "Default",
     statusOutline = "OUTLINE",
+    fontSizeStatus = 10,
     statusPoint = "RIGHT",
     statusX = -2,
     statusY = 0,
-    hpMode = "PERCENT",
 
-    -- Роли и метки
-    useBlizzRole = false,
-    showRoleIcon = true,
+    -- Ауры
+    -- Баффы
+    showBuffs = true,
+    useBlizzBuffs = false,
+    showCustomBuffs = true,
+    showBuffsTooltip = false,
+    buffSize = 20,
+    buffTextScale = 0.8,
+    buffPoint = "BOTTOMLEFT",
+    buffGrow = "RIGHT",
+    buffSpacing = 2,
+    showbuffTimer = true,
+    buffX = 2,
+    buffY = 2,
+
+    -- Дебаффы
+    showDebuffs = true,
+    useBlizzDebuffs = false,
+    showCustomDebuffs = true,
+    showDebuffsTooltip = false,
+    debuffSize = 20,
+    debuffPoint = "BOTTOMRIGHT",
+    debuffX = 2,
+    debuffY = 2,
+    debuffGrow = "LEFT",
+    debuffSpacing = 2,
+    showDebuffTimer = true,
+    debuffTextScale = 0.8,
+
+    -- Иконка диспела
+    showDispel = true,
+    useBlizzDispel = true,
+    showCustomDispel = false,
+    showDispelTooltip = false,
+    dispelSize = 20,
+    dispelPoint = "TOPRIGHT",
+    dispelX = 0,
+    dispelY = 0,
+
+    -- Центральный сейв
+    showBigSave = true,
+    useBlizzBigSave = true,
+    showCustomBigSave = false,
+    showBigSaveTooltip = false,
+    showBigSaveTimer = true,
+    bigSaveSize = 40,
+    bigSavePoint = "CENTER",
+    bigSaveX = 0,
+    bigSaveY = 0,
+    bigSaveTextScale = 0.8,
+
+    -- Рейдовые метки
+    showRaidMark = true,
+    raidMarkSize = 20,
+    raidMarkPoint = "TOPRIGHT",
+    raidMarkX = 0,
+    raidMarkY = 0,
+
+    -- Иконки ролей
+    useBlizzRole = true,
+    showCustomRoleIcon = false,
+    showRoleTank = false,
+    showRoleHeal = false,
+    showRoleDamager = false,
     roleIconSize = 15,
     roleIconPoint = "TOPLEFT",
     roleIconX = 2,
     roleIconY = -2,
 
-    showRaidMark = true,
-    raidMarkSize = 20,
-    raidMarkPoint = "TOPRIGHT",
-    raidMarkX = 0,
-    raidMarkY = -2,
-
-    -- Ауры
-    showBuffs = true,
-    showDebuffs = true,
-    auraSize = 18,
-    auraPoint = "BOTTOMLEFT",
-    auraX = 2,
-    auraY = 2,
-    auraGrow = "RIGHT",
-    auraSpacing = 2,
-    showbuffTimer = true,
-    useBlizzBuffs = false,
-    showCustomBuffs = true,
-    useBlizzDebuffs = false,
-    showCustomDebuffs = true,
-    useBlizzBigSave = false,
-    showCustomBigSave = true,
-    showAuraTooltip = true,
-    showBigSaveTooltip = true,
-
-    showGroups = true,
-    hoverAlpha = 0.2,
-    showRoleTank = true,
-    showRoleHeal = true,
-    showRoleDamager = true,
 }
 
 ns.defaults = {

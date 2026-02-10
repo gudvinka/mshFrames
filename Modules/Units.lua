@@ -84,7 +84,7 @@ function msh.UpdateUnitDisplay(frame)
         end
 
         local shouldShowCustom = false
-        if cfg.showRoleIcon then
+        if cfg.showCustomRoleIcon then
             if role == "TANK" and cfg.showRoleTank then
                 shouldShowCustom = true
             elseif role == "HEALER" and cfg.showRoleHeal then

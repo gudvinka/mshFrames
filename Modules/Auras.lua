@@ -39,12 +39,12 @@ function msh.UpdateAuras(frame)
             enabled = cfg.showBuffs,
             isBlizz = cfg.useBlizzBuffs,
             isCustom = cfg.showCustomBuffs,
-            size = cfg.auraSize,
-            point = cfg.auraPoint,
-            x = cfg.auraX,
-            y = cfg.auraY,
-            grow = cfg.auraGrow,
-            space = cfg.auraSpacing,
+            size = cfg.buffSize,
+            point = cfg.buffPoint,
+            x = cfg.buffX,
+            y = cfg.buffY,
+            grow = cfg.buffGrow,
+            space = cfg.buffSpacing,
             timer = cfg.showbuffTimer,
             scale = cfg.buffTextScale,
             showTooltip = cfg.showBuffsTooltip
@@ -77,10 +77,22 @@ function msh.UpdateAuras(frame)
             space = 0,
             timer = cfg.showBigSaveTimer,
             scale = cfg.bigSaveTextScale,
-            showBigSaveTooltip = cfg.showBigSaveTooltip
+            showTooltip = cfg.showBigSaveTooltip
         },
-        -- Диспел обычно либо включен (стандарт), либо нет
-        { pool = frame.dispelDebuffFrames, enabled = cfg.showDispel, isCustom = true, size = cfg.dispelSize, point = cfg.dispelPoint, x = cfg.dispelX, y = cfg.dispelY, grow = "LEFT", space = 2, scale = 0.8 }
+        {
+            pool = frame.dispelDebuffFrames,
+            enabled = cfg.showDispel,
+            isBlizz = cfg.useBlizzDispel,
+            isCustom = cfg.showCustomDispel,
+            size = cfg.dispelSize,
+            point = cfg.dispelPoint,
+            x = cfg.dispelX,
+            y = cfg.dispelY,
+            grow = "LEFT",
+            space = 2,
+            scale = 0.8,
+            showTooltip = cfg.showDispelTooltip,
+        }
     }
 
     for _, data in ipairs(auraSettings) do
@@ -90,7 +102,7 @@ function msh.UpdateAuras(frame)
             for i = 1, #data.pool do
                 local icon = data.pool[i]
                 if icon then
-                    icon:EnableMouse(data.showTooltip or data.showBigSaveTooltip or false)
+                    icon:EnableMouse(data.showTooltip or false)
                     if not data.enabled then
                         if icon:IsShown() then icon:Hide() end
                     elseif icon:IsShown() then
