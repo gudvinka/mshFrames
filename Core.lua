@@ -60,4 +60,20 @@ function msh:OnEnable()
             if partyFrame and partyFrame.mshLayersCreated then msh.UpdateUnitDisplay(partyFrame) end
         end
     end)
+
+    self:RegisterEvent("GROUP_ROSTER_UPDATE", function()
+        C_Timer.After(0.1, function()
+            for i = 1, 40 do
+                local rf = _G["CompactRaidFrame" .. i]
+                if rf and rf:IsShown() then
+                    msh.ApplyStyle(rf)
+                end
+
+                local pf = _G["CompactPartyFrameMember" .. i]
+                if pf and pf:IsShown() then
+                    msh.ApplyStyle(pf)
+                end
+            end
+        end)
+    end)
 end
