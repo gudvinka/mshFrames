@@ -41,7 +41,7 @@ local function AddAuraControls(args, path, key, label, customColor)
         order = 1,
         get = function() return path[toggleKey] end,
         set = function(_, v)
-            path[toggleKey] = v; ns.needsReload = true; LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrame");
+            path[toggleKey] = v; ns.needsReload = true; LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames");
         end
     }
     args[blizzKey] = {
@@ -54,7 +54,7 @@ local function AddAuraControls(args, path, key, label, customColor)
         disabled = function() return not path[toggleKey] or path[customKey] end,
         get = function() return path[blizzKey] end,
         set = function(_, v)
-            path[blizzKey] = v; ns.needsReload = true; LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrame");
+            path[blizzKey] = v; ns.needsReload = true; LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames");
         end
     }
     args[customKey] = {
@@ -67,7 +67,7 @@ local function AddAuraControls(args, path, key, label, customColor)
         disabled = function() return not path[toggleKey] or path[blizzKey] end,
         get = function() return path[customKey] end,
         set = function(_, v)
-            path[customKey] = v; ns.needsReload = true; LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrame");
+            path[customKey] = v; ns.needsReload = true; LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames");
         end
     }
     args[tooltipKey] = {
@@ -84,28 +84,24 @@ local function AddAuraControls(args, path, key, label, customColor)
 end
 
 local outlineModes = {
-    ["NONE"] = "Нет", ["OUTLINE"] = "Тонкий", ["THICKOUTLINE"] = "Жирный", ["MONOCHROME"] = "Пиксельный",
+    ["NONE"] = "Нет",
+    ["OUTLINE, SLUG"] = "Тонкий Красивый",
+    ["OUTLINE"] = "Тонкий Уродский",
+    ["THICKOUTLINE"] = "Жирный",
+    ["MONOCHROME"] = "Пиксельный",
 }
--- Функция мгновенного обновления фреймов
-local function Refresh()
-    for i = 1, 40 do
-        local rf = _G["CompactRaidFrame" .. i]
-        if rf then
-            msh.ApplyStyle(rf)
-        end -- Вызываем всегда, ApplyStyle сам разберется
-
-        local pf = _G["CompactPartyFrameMember" .. i]
-        if pf then
-            msh.ApplyStyle(pf)
-        end
-    end
-end
+local outlineOrder = {
+    "NONE",
+    "OUTLINE, SLUG",
+    "OUTLINE",
+    "THICKOUTLINE",
+    "MONOCHROME" }
 
 -- Функция для генерации вложенных групп
 local function GetUnitGroups(path)
     local buffsArgs = {
         warning = reloadWarning,
-        auraSize = {
+        buffSize = {
             type = "range",
             name = "Размер",
             order = 10,
@@ -115,13 +111,13 @@ local function GetUnitGroups(path)
             disabled = function() return not path.showBuffs end,
             get = function()
                 return
-                    path.auraSize
+                    path.buffSize
             end,
             set = function(_, v)
-                path.auraSize = v; Refresh()
+                path.buffSize = v; Refresh()
             end
         },
-        auraPoint = {
+        buffPoint = {
             type = "select",
             name = "Якорь",
             order = 11,
@@ -132,13 +128,13 @@ local function GetUnitGroups(path)
             end,
             get = function()
                 return
-                    path.auraPoint
+                    path.buffPoint
             end,
             set = function(_, v)
-                path.auraPoint = v; Refresh()
+                path.buffPoint = v; Refresh()
             end
         },
-        auraX = {
+        buffX = {
             type = "range",
             name = "X",
             order = 12,
@@ -151,13 +147,13 @@ local function GetUnitGroups(path)
             end,
             get = function()
                 return
-                    path.auraX
+                    path.buffX
             end,
             set = function(_, v)
-                path.auraX = v; Refresh()
+                path.buffX = v; msh:Refresh()
             end
         },
-        auraY = {
+        buffY = {
             type = "range",
             name = "Y",
             order = 13,
@@ -170,13 +166,13 @@ local function GetUnitGroups(path)
             end,
             get = function()
                 return
-                    path.auraY
+                    path.buffY
             end,
             set = function(_, v)
-                path.auraY = v; Refresh()
+                path.buffY = v; msh:Refresh()
             end
         },
-        auraGrow = {
+        buffGrow = {
             type = "select",
             name = "Рост",
             order = 14,
@@ -187,13 +183,13 @@ local function GetUnitGroups(path)
             end,
             get = function()
                 return
-                    path.auraGrow
+                    path.buffGrow
             end,
             set = function(_, v)
-                path.auraGrow = v; Refresh()
+                path.buffGrow = v; msh:Refresh()
             end
         },
-        auraSpacing = {
+        buffSpacing = {
             type = "range",
             name = "Отступ",
             order = 15,
@@ -206,10 +202,10 @@ local function GetUnitGroups(path)
             end,
             get = function()
                 return
-                    path.auraSpacing
+                    path.buffSpacing
             end,
             set = function(_, v)
-                path.auraSpacing = v; Refresh()
+                path.buffSpacing = v; msh:Refresh()
             end
         },
         showbuffTimer = {
@@ -219,7 +215,7 @@ local function GetUnitGroups(path)
             disabled = function() return not path.showBuffs end,
             get = function() return path.showbuffTimer end,
             set = function(_, v)
-                path.showbuffTimer = v; Refresh()
+                path.showbuffTimer = v; msh:Refresh()
             end
         },
         buffTextScale = {
@@ -257,7 +253,7 @@ local function GetUnitGroups(path)
                 msh.db.profile.global.showOnlyDispellable = v
                 msh.SyncBlizzardSettings()
                 ns.needsReload = true
-                LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrame")
+                LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
                 Refresh()
             end,
         },
@@ -273,7 +269,7 @@ local function GetUnitGroups(path)
                     path.debuffSize
             end,
             set = function(_, v)
-                path.debuffSize = v; Refresh()
+                path.debuffSize = v; msh:Refresh()
             end
         },
         debuffPoint = {
@@ -289,7 +285,7 @@ local function GetUnitGroups(path)
                     path.debuffPoint
             end,
             set = function(_, v)
-                path.debuffPoint = v; Refresh()
+                path.debuffPoint = v; msh:Refresh()
             end
         },
         debuffX = {
@@ -307,7 +303,7 @@ local function GetUnitGroups(path)
                     path.debuffX
             end,
             set = function(_, v)
-                path.debuffX = v; Refresh()
+                path.debuffX = v; msh:Refresh()
             end
         },
         debuffY = {
@@ -325,7 +321,7 @@ local function GetUnitGroups(path)
                     path.debuffY
             end,
             set = function(_, v)
-                path.debuffY = v; Refresh()
+                path.debuffY = v; msh:Refresh()
             end
         },
         debuffGrow = {
@@ -341,7 +337,7 @@ local function GetUnitGroups(path)
                     path.debuffGrow
             end,
             set = function(_, v)
-                path.debuffGrow = v; Refresh()
+                path.debuffGrow = v; msh:Refresh()
             end
         },
         debuffSpacing = {
@@ -359,7 +355,7 @@ local function GetUnitGroups(path)
                     path.debuffSpacing
             end,
             set = function(_, v)
-                path.debuffSpacing = v; Refresh()
+                path.debuffSpacing = v; msh:Refresh()
             end
         },
         showDebuffTimer = {
@@ -371,7 +367,7 @@ local function GetUnitGroups(path)
                     path.showDebuffTimer
             end,
             set = function(_, v)
-                path.showDebuffTimer = v; Refresh()
+                path.showDebuffTimer = v; msh:Refresh()
             end
         },
         debuffTextScale = {
@@ -389,7 +385,7 @@ local function GetUnitGroups(path)
                     path.debuffTextScale
             end,
             set = function(_, v)
-                path.debuffTextScale = v; Refresh()
+                path.debuffTextScale = v; msh:Refresh()
             end
         },
     }
@@ -408,7 +404,7 @@ local function GetUnitGroups(path)
                     path.dispelSize
             end,
             set = function(_, v)
-                path.dispelSize = v; Refresh()
+                path.dispelSize = v; msh:Refresh()
             end
         },
         dispelPoint = {
@@ -421,7 +417,7 @@ local function GetUnitGroups(path)
                     path.dispelPoint
             end,
             set = function(_, v)
-                path.dispelPoint = v; Refresh()
+                path.dispelPoint = v; msh:Refresh()
             end
         },
         dispelX = {
@@ -436,7 +432,7 @@ local function GetUnitGroups(path)
                     path.dispelX
             end,
             set = function(_, v)
-                path.dispelX = v; Refresh()
+                path.dispelX = v; msh:Refresh()
             end
         },
         dispelY = {
@@ -451,7 +447,7 @@ local function GetUnitGroups(path)
                     path.dispelY
             end,
             set = function(_, v)
-                path.dispelY = v; Refresh()
+                path.dispelY = v; msh:Refresh()
             end
         },
 
@@ -469,7 +465,7 @@ local function GetUnitGroups(path)
                     path.showBigSaveTimer
             end,
             set = function(_, v)
-                path.showBigSaveTimer = v; Refresh()
+                path.showBigSaveTimer = v; msh:Refresh()
             end
         },
         bigSaveSize = {
@@ -484,7 +480,7 @@ local function GetUnitGroups(path)
                     path.bigSaveSize
             end,
             set = function(_, v)
-                path.bigSaveSize = v; Refresh()
+                path.bigSaveSize = v; msh:Refresh()
             end
         },
         bigSavePoint = {
@@ -500,7 +496,7 @@ local function GetUnitGroups(path)
                     path.bigSavePoint
             end,
             set = function(_, v)
-                path.bigSavePoint = v; Refresh()
+                path.bigSavePoint = v; msh:Refresh()
             end
         },
         bigSaveX = {
@@ -518,7 +514,7 @@ local function GetUnitGroups(path)
                     path.bigSaveX
             end,
             set = function(_, v)
-                path.bigSaveX = v; Refresh()
+                path.bigSaveX = v; msh:Refresh()
             end
         },
         bigSaveY = {
@@ -536,7 +532,7 @@ local function GetUnitGroups(path)
                     path.bigSaveY
             end,
             set = function(_, v)
-                path.bigSaveY = v; Refresh()
+                path.bigSaveY = v; msh:Refresh()
             end
         },
         bigSaveTextScale = {
@@ -551,7 +547,7 @@ local function GetUnitGroups(path)
                     path.bigSaveTextScale
             end,
             set = function(_, v)
-                path.bigSaveTextScale = v; Refresh()
+                path.bigSaveTextScale = v; msh:Refresh()
             end
         },
 
@@ -575,7 +571,7 @@ local function GetUnitGroups(path)
                     values = AceGUIWidgetLSMlists.statusbar,
                     get = function() return path.texture end,
                     set = function(_, v)
-                        path.texture = v; Refresh()
+                        path.texture = v; msh:Refresh()
                     end,
                 },
 
@@ -588,7 +584,7 @@ local function GetUnitGroups(path)
                     set = function(_, v)
                         path.showGroups = v
                         msh.SyncBlizzardSettings()
-                        Refresh()
+                        msh:Refresh()
                     end,
                 },
                 hoverAlpha = {
@@ -616,15 +612,11 @@ local function GetUnitGroups(path)
                     type = "select",
                     name = "Шрифт имени",
                     order = 1,
-                    values = function()
-                        local list = LibStub("LibSharedMedia-3.0"):HashTable("font")
-                        list["Default"] = "|cff00ff00По умолчанию (Глобальный)|r" -- Добавляем наш пункт
-                        return list
-                    end,
+                    values = LSM:HashTable("font"),
                     dialogControl = "LSM30_Font",
                     get = function() return path.fontName end,
                     set = function(_, v)
-                        path.fontName = v; Refresh()
+                        path.fontName = v; msh:Refresh()
                     end,
                 },
                 nameOutline = {
@@ -632,9 +624,10 @@ local function GetUnitGroups(path)
                     name = "Контур текста",
                     order = 1.1,
                     values = outlineModes,
+                    sorting = outlineOrder,
                     get = function() return path.nameOutline or "OUTLINE" end,
                     set = function(_, v)
-                        path.nameOutline = v; Refresh()
+                        path.nameOutline = v; msh:Refresh()
                     end,
                 },
                 fontSize = {
@@ -646,7 +639,7 @@ local function GetUnitGroups(path)
                     step = 1,
                     get = function() return path.fontSizeName end,
                     set = function(_, v)
-                        path.fontSizeName = v; Refresh()
+                        path.fontSizeName = v; msh:Refresh()
                     end,
                 },
                 shortenNames = {
@@ -656,7 +649,7 @@ local function GetUnitGroups(path)
                     order = 2.1,
                     get = function() return path.shortenNames end,
                     set = function(_, v)
-                        path.shortenNames = v; Refresh()
+                        path.shortenNames = v; msh:Refresh()
                     end,
                 },
                 nameLength = {
@@ -670,7 +663,7 @@ local function GetUnitGroups(path)
                     disabled = function() return not path.shortenNames end,
                     get = function() return path.nameLength end,
                     set = function(_, v)
-                        path.nameLength = v; Refresh()
+                        path.nameLength = v; msh:Refresh()
                     end,
                 },
                 namePoint = {
@@ -680,7 +673,7 @@ local function GetUnitGroups(path)
                     values = anchorPoints,
                     get = function() return path.namePoint end,
                     set = function(_, v)
-                        path.namePoint = v; Refresh()
+                        path.namePoint = v; msh:Refresh()
                     end,
                 },
                 nameX = {
@@ -692,7 +685,7 @@ local function GetUnitGroups(path)
                     step = 1,
                     get = function() return path.nameX end,
                     set = function(_, v)
-                        path.nameX = v; Refresh()
+                        path.nameX = v; msh:Refresh()
                     end,
                 },
                 nameY = {
@@ -704,7 +697,7 @@ local function GetUnitGroups(path)
                     step = 1,
                     get = function() return path.nameY end,
                     set = function(_, v)
-                        path.nameY = v; Refresh()
+                        path.nameY = v; msh:Refresh()
                     end,
                 },
             }
@@ -718,15 +711,11 @@ local function GetUnitGroups(path)
                     type = "select",
                     name = "Шрифт",
                     order = 1,
-                    values = function()
-                        local list = LibStub("LibSharedMedia-3.0"):HashTable("font")
-                        list["Default"] = "|cff00ff00По умолчанию (Глобальный)|r" -- Добавляем наш пункт
-                        return list
-                    end,
+                    values = LSM:HashTable("font"),
                     dialogControl = "LSM30_Font",
                     get = function() return path.fontStatus end,
                     set = function(_, v)
-                        path.fontStatus = v; Refresh()
+                        path.fontStatus = v; msh:Refresh()
                     end,
                 },
                 statusOutline = {
@@ -734,9 +723,10 @@ local function GetUnitGroups(path)
                     name = "Контур",
                     order = 1.1,
                     values = outlineModes,
+                    sorting = outlineOrder,
                     get = function() return path.statusOutline or "OUTLINE" end,
                     set = function(_, v)
-                        path.statusOutline = v; Refresh()
+                        path.statusOutline = v; msh:Refresh()
                     end,
                 },
                 fontSizeStatus = {
@@ -748,7 +738,7 @@ local function GetUnitGroups(path)
                     step = 1,
                     get = function() return path.fontSizeStatus end,
                     set = function(_, v)
-                        path.fontSizeStatus = v; Refresh()
+                        path.fontSizeStatus = v; msh:Refresh()
                     end,
                 },
                 statusPoint = {
@@ -758,7 +748,7 @@ local function GetUnitGroups(path)
                     values = anchorPoints,
                     get = function() return path.statusPoint end,
                     set = function(_, v)
-                        path.statusPoint = v; Refresh()
+                        path.statusPoint = v; msh:Refresh()
                     end,
                 },
                 statusX = {
@@ -773,7 +763,7 @@ local function GetUnitGroups(path)
                             path.statusX
                     end,
                     set = function(_, v)
-                        path.statusX = v; Refresh()
+                        path.statusX = v; msh:Refresh()
                     end
                 },
                 statusY = {
@@ -788,7 +778,7 @@ local function GetUnitGroups(path)
                             path.statusY
                     end,
                     set = function(_, v)
-                        path.statusY = v; Refresh()
+                        path.statusY = v; msh:Refresh()
                     end
                 },
             }
@@ -816,7 +806,7 @@ local function GetUnitGroups(path)
                     order = 1,
                     get = function() return path.showRaidMark end,
                     set = function(_, v)
-                        path.showRaidMark = v; Refresh()
+                        path.showRaidMark = v; msh:Refresh()
                     end,
                 },
                 raidMarkSize = {
@@ -828,7 +818,7 @@ local function GetUnitGroups(path)
                     step = 1,
                     get = function() return path.raidMarkSize end,
                     set = function(_, v)
-                        path.raidMarkSize = v; Refresh()
+                        path.raidMarkSize = v; msh:Refresh()
                     end,
                 },
                 raidMarkPoint = {
@@ -838,7 +828,7 @@ local function GetUnitGroups(path)
                     values = anchorPoints,
                     get = function() return path.raidMarkPoint end,
                     set = function(_, v)
-                        path.raidMarkPoint = v; Refresh()
+                        path.raidMarkPoint = v; msh:Refresh()
                     end,
                 },
                 raidMarkX = {
@@ -850,7 +840,7 @@ local function GetUnitGroups(path)
                     step = 1,
                     get = function() return path.raidMarkX end,
                     set = function(_, v)
-                        path.raidMarkX = v; Refresh()
+                        path.raidMarkX = v; msh:Refresh()
                     end,
                 },
                 raidMarkY = {
@@ -862,7 +852,7 @@ local function GetUnitGroups(path)
                     step = 1,
                     get = function() return path.raidMarkY end,
                     set = function(_, v)
-                        path.raidMarkY = v; Refresh()
+                        path.raidMarkY = v; msh:Refresh()
                     end,
                 },
             }
@@ -882,8 +872,8 @@ local function GetUnitGroups(path)
                     set = function(_, v)
                         path.useBlizzRole = v;
                         ns.needsReload = true
-                        LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrame")
-                        Refresh()
+                        LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
+                        msh:Refresh()
                     end,
                 },
                 showCustomRoleIcon = {
@@ -894,7 +884,7 @@ local function GetUnitGroups(path)
                     disabled = function() return path.useBlizzRole end,
                     get = function(_) return path.showCustomRoleIcon end,
                     set = function(_, v)
-                        path.showCustomRoleIcon = v; Refresh()
+                        path.showCustomRoleIcon = v; msh:Refresh()
                     end,
                 },
                 showRoleTank = {
@@ -905,7 +895,7 @@ local function GetUnitGroups(path)
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleTank end,
                     set = function(_, v)
-                        path.showRoleTank = v; Refresh()
+                        path.showRoleTank = v; msh:Refresh()
                     end,
                 },
                 showRoleHeal = {
@@ -916,7 +906,7 @@ local function GetUnitGroups(path)
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleHeal end,
                     set = function(_, v)
-                        path.showRoleHeal = v; Refresh()
+                        path.showRoleHeal = v; msh:Refresh()
                     end,
                 },
                 showRoleDamager = {
@@ -927,7 +917,7 @@ local function GetUnitGroups(path)
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleDamager end,
                     set = function(_, v)
-                        path.showRoleDamager = v; Refresh()
+                        path.showRoleDamager = v; msh:Refresh()
                     end,
                 },
                 roleIconSize = {
@@ -940,7 +930,7 @@ local function GetUnitGroups(path)
                     disabled = function() return path.useBlizzRole end,
                     get = function() return path.roleIconSize end,
                     set = function(_, v)
-                        path.roleIconSize = v; Refresh()
+                        path.roleIconSize = v; msh:Refresh()
                     end,
                 },
                 roleIconPoint = {
@@ -951,7 +941,7 @@ local function GetUnitGroups(path)
                     disabled = function() return path.useBlizzRole end,
                     get = function() return path.roleIconPoint end,
                     set = function(_, v)
-                        path.roleIconPoint = v; Refresh()
+                        path.roleIconPoint = v; msh:Refresh()
                     end,
                 },
                 roleIconX = {
@@ -964,7 +954,7 @@ local function GetUnitGroups(path)
                     disabled = function() return path.useBlizzRole end,
                     get = function() return path.roleIconX end,
                     set = function(_, v)
-                        path.roleIconX = v; Refresh()
+                        path.roleIconX = v; msh:Refresh()
                     end,
                 },
                 roleIconY = {
@@ -977,7 +967,7 @@ local function GetUnitGroups(path)
                     disabled = function() return path.useBlizzRole end,
                     get = function() return path.roleIconY end,
                     set = function(_, v)
-                        path.roleIconY = v; Refresh()
+                        path.roleIconY = v; msh:Refresh()
                     end,
                 },
             }
@@ -988,7 +978,7 @@ end
 -- Дефолты
 local defaultProfile = {
     -- General
-    texture = "Flat",
+    texture = "Solid",
     showGroups = true,
     hoverAlpha = 0.2,
 
@@ -1097,7 +1087,7 @@ ns.defaults = {
 -- Главное окно
 ns.options = {
     type = "group",
-    name = "mshFrame",
+    name = "mshFrames",
     args = {
         globalSettings = {
             name = "|cffffd100Global|r",
@@ -1113,9 +1103,23 @@ ns.options = {
                     values = function() return LibStub("LibSharedMedia-3.0"):HashTable("font") end,
                     dialogControl = "LSM30_Font",
                     get = function() return msh.db.profile.global.globalFontName end,
-                    set = function(_, v)
-                        msh.db.profile.global.globalFontName = v
-                        Refresh() -- Перерисовываем фреймы сразу
+                    set = function(_, value)
+                        -- 1. Ставим само значение глобального шрифта
+                        msh.db.profile.global.globalFontName = value
+
+                        msh.db.profile.party.fontName = value
+                        msh.db.profile.party.fontStatus = value
+                        msh.db.profile.party.fontBuffsTimer = value
+                        msh.db.profile.party.fontDebuffsTimer = value
+                        msh.db.profile.raid.fontBigSaveTimer = value
+
+                        msh.db.profile.raid.fontName = value
+                        msh.db.profile.raid.fontStatus = value
+                        msh.db.profile.raid.fontBuffsTimer = value
+                        msh.db.profile.raid.fontDebuffsTimer = value
+                        msh.db.profile.party.fontBigSaveTimer = value
+
+                        msh:RefreshConfig()
                     end,
                 },
                 hpMode = {
@@ -1132,7 +1136,7 @@ ns.options = {
                     set = function(_, v)
                         msh.db.profile.global.hpMode = v
                         msh.SyncBlizzardSettings()
-                        Refresh()
+                        msh:Refresh()
                     end,
                 },
                 raidClassColor = {
@@ -1144,13 +1148,13 @@ ns.options = {
                     set = function(_, v)
                         msh.db.profile.global.raidClassColor = v
                         msh.SyncBlizzardSettings()
-                        Refresh()
+                        msh:Refresh()
                     end,
                 },
                 logo = {
                     type = "description",
                     name = "",
-                    image = [[Interface\AddOns\mshFrame\Media\onyaka]],
+                    image = [[Interface\AddOns\mshFrames\Media\onyaka]],
                     imageWidth = 150,
                     imageHeight = 150,
                     order = 0,
@@ -1178,12 +1182,12 @@ ns.options = {
 function msh:OnInitialize()
     -- Регистрация шрифта
     local fontName = "Montserrat-SemiBold"
-    local fontPath = "Interface\\AddOns\\mshFrame\\Media\\msh.ttf"
+    local fontPath = "Interface\\AddOns\\mshFrames\\Media\\msh.ttf"
     LSM:Register("font", fontName, fontPath)
     if not AceGUIWidgetLSMlists.font[fontName] then AceGUIWidgetLSMlists.font[fontName] = fontName end
 
     -- Загружаем БД
-    self.db = LibStub("AceDB-3.0"):New("mshFrameDB", ns.defaults, true)
+    self.db = LibStub("AceDB-3.0"):New("mshFramesDB", ns.defaults, true)
 
 
     ns.options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
@@ -1229,15 +1233,16 @@ function msh:OnInitialize()
     self.db.RegisterCallback(msh, "OnProfileReset", "RefreshConfig")
 
 
-    AceConfig:RegisterOptionsTable("mshFrame", ns.options)
-    self.optionsFrame = AceConfigDialog:AddToBlizOptions("mshFrame", "mshFrame")
+    AceConfig:RegisterOptionsTable("mshFrames", ns.options)
+    self.optionsFrame = AceConfigDialog:AddToBlizOptions("mshFrames", "mshFrames")
 
     -- Слэш-команда
     SLASH_MSH1 = "/msh"
     SlashCmdList["MSH"] = function()
-        AceConfigDialog:SetDefaultSize("mshFrame", 1000, 600)
-        AceConfigDialog:Open("mshFrame")
+        AceConfigDialog:SetDefaultSize("mshFrames", 1000, 600)
+        AceConfigDialog:Open("mshFrames")
     end
+    print("|cff00ff00mshFrames загружен!|r Используйте |cffffff00/msh|r для настройки.")
 end
 
 function msh:RefreshMenu()
@@ -1245,7 +1250,7 @@ function msh:RefreshMenu()
     ns.options.args.raidTab.args = GetUnitGroups(self.db.profile.raid)
 
 
-    LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrame")
+    LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
 end
 
 -- СИНХРОНИЗАЦИЯ С CVARS (Системные настройки)
@@ -1306,8 +1311,6 @@ function msh:RefreshConfig()
 
 
     if msh.SyncBlizzardSettings then msh.SyncBlizzardSettings() end
-
-    print("|cff00ff00mshFrame:|r Профиль успешно применен.")
 end
 
 function msh:GetExportString()

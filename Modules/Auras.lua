@@ -19,12 +19,14 @@ function msh.UpdateAuras(frame)
     if not frame or frame:IsForbidden() or isSetting then return end
 
     local cfg = ns.cfg
+    if not cfg then return end
+
     isSetting = true
 
     local globalFont = msh.db.profile.global.globalFontName
-    local localFont = cfg.fontName -- Используем шрифт имен как локальный ориентир
-
+    local localFont = cfg.fontName
     local activeFont
+
     if localFont and localFont ~= "Default" and localFont ~= "" then
         activeFont = localFont
     else

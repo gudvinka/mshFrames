@@ -45,52 +45,88 @@ hooksecurefunc("CompactUnitFrame_UpdateAuras", function(frame)
     if frame.mshLayersCreated then msh.UpdateAuras(frame) end
 end)
 
--- Регистрация событий
+function msh:Refresh(full)
+    if full then
+        self:RefreshConfig()
+        return
+    end
+
+    -- В обычном случае (msh:Refresh()) просто быстро обновляем визуал
+    for i = 1, 40 do
+        local rf = _G["CompactRaidFrame" .. i]
+        if rf and rf:IsShown() and rf.mshLayersCreated then
+            msh.ApplyStyle(rf)
+        end
+
+        local pf = _G["CompactPartyFrameMember" .. i]
+        if pf and pf:IsShown() and pf.mshLayersCreated then
+            msh.ApplyStyle(pf)
+        end
+    end
+end
+
 function msh:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD", function()
         if msh.SyncBlizzardSettings then msh.SyncBlizzardSettings() end
     end)
 
-    local function ForceRefresh()
-        -- 0.1 сек достаточно, чтобы Blizzard закончил применять свой Layout
-        C_Timer.After(0.1, function()
-            if msh.RefreshConfig then
-                msh:RefreshConfig()
-            end
-        end)
-    end
-
-    -- Хукаем выход из EditMode (через глобальный API)
     if _G.EditMode and _G.EditMode.Exit then
-        hooksecurefunc(_G.EditMode, "Exit", ForceRefresh)
+        hooksecurefunc(_G.EditMode, "Exit", function() msh:Refresh() end)
     end
 
-    -- Хукаем финальное обновление макета (самый надежный способ в 11.0)
+    -- Хукаем финальное обновление макета
     if _G.EditModeManagerFrame and _G.EditModeManagerFrame.UpdateLayoutInfo then
-        hooksecurefunc(_G.EditModeManagerFrame, "UpdateLayoutInfo", ForceRefresh)
+        hooksecurefunc(_G.EditModeManagerFrame, "UpdateLayoutInfo", function() msh:Refresh() end)
     end
 
     self:RegisterEvent("GROUP_ROSTER_UPDATE", function()
+        -- Даем Blizzard 0.1 сек, чтобы обновить переменные юнитов (кто в какой группе)
         C_Timer.After(0.1, function()
             for i = 1, 40 do
+                -- Проверяем рейдовые фреймы
                 local rf = _G["CompactRaidFrame" .. i]
-                if rf and rf:IsShown() then
+                if rf and rf:IsShown() and rf.mshLayersCreated then
+                    -- Если фрейм уже существует, обновляем только данные (имя, метку, роль)
+                    msh.UpdateUnitDisplay(rf)
+                    msh.UpdateHealthDisplay(rf)
+                    if msh.UpdateAuras then msh.UpdateAuras(rf) end
+                elseif rf and rf:IsShown() then
+                    -- Если фрейм только что появился и слоев нет — инициализируем полностью
                     msh.ApplyStyle(rf)
                 end
 
+                -- Проверяем пати фреймы
                 local pf = _G["CompactPartyFrameMember" .. i]
-                if pf and pf:IsShown() then
+                if pf and pf:IsShown() and pf.mshLayersCreated then
+                    msh.UpdateUnitDisplay(pf)
+                    msh.UpdateHealthDisplay(pf)
+                    if msh.UpdateAuras then msh.UpdateAuras(pf) end
+                elseif pf and pf:IsShown() then
                     msh.ApplyStyle(pf)
                 end
             end
 
-            -- а надо ли нам обновлять сеттинги Blizzard при смене группы?!
-            if msh.SyncBlizzardSettings then
-                msh.SyncBlizzardSettings()
-            end
+            -- Синхронизируем настройки (скрытие заголовков групп и т.д.)
+            -- Вызываем ОДИН раз вместо двух
             if msh.SyncBlizzardSettings then
                 msh.SyncBlizzardSettings()
             end
         end)
+    end)
+
+    self:RegisterEvent("RAID_TARGET_UPDATE", function()
+        -- Это событие говорит: "Метки в рейде изменились!"
+        -- Мы принудительно обновляем все видимые фреймы
+        for i = 1, 40 do
+            local rf = _G["CompactRaidFrame" .. i]
+            if rf and rf:IsShown() and rf.mshLayersCreated then
+                msh.UpdateUnitDisplay(rf)
+            end
+
+            local pf = _G["CompactPartyFrameMember" .. i]
+            if pf and pf:IsShown() and pf.mshLayersCreated then
+                msh.UpdateUnitDisplay(pf)
+            end
+        end
     end)
 end

@@ -42,7 +42,7 @@ end
 function msh.UpdateHealthDisplay(frame)
     if isUpdating or not frame or frame:IsForbidden() then return end
 
-    local cfg = ns.cfg -- Сначала берем конфиг!
+    local cfg = ns.cfg
     if not cfg or not frame.healthBar then return end
 
     if not frame.mshHealthCreated then
@@ -57,7 +57,7 @@ function msh.UpdateHealthDisplay(frame)
     if localFont and localFont ~= "Default" and localFont ~= "" then
         activeFont = localFont
     else
-        activeFont = (globalFont and globalFont ~= "") and globalFont or "Montserrat-SemiBold"
+        activeFont = (globalFont and globalFont ~= "") and globalFont or "Friz Quadrata TT"
     end
 
     local fontPath = LSM:Fetch("font", activeFont)
@@ -76,9 +76,11 @@ function msh.UpdateHealthDisplay(frame)
     else
         -- Берем текст Blizzard
         local blizzText = frame.statusText and frame.statusText:GetText() or ""
-        local font = LSM:Fetch("font", cfg.fontStatus)
+        -- local font = LSM:Fetch("font", cfg.fontStatus)
+        local fontPath = LSM:Fetch("font", cfg.fontStatus or "Friz Quadrata TT")
 
         frame.mshHP:SetFont(fontPath, cfg.fontSizeStatus, cfg.statusOutline)
+
         frame.mshHP:ClearAllPoints()
         frame.mshHP:SetPoint(cfg.statusPoint or "TOP", frame, cfg.statusX or 0, cfg.statusY or 0)
 

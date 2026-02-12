@@ -1,7 +1,7 @@
 ## Interface: 120000
-## Title: mshFrame
+## Title: mshFrames
 ## Version: 0.6
-## SavedVariables: mshFrameDB
+## SavedVariables: mshFramesDB
 
 Libs\LibSharedMedia-3.0\LibStub\LibStub.lua
 Libs\Ace3\CallbackHandler-1.0\CallbackHandler-1.0.xml
