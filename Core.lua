@@ -3,46 +3,80 @@ local addonName, ns = ...
 
 local msh = LibStub("AceAddon-3.0"):NewAddon(ns, addonName, "AceEvent-3.0")
 
+function msh.GetConfigForFrame(frame)
+    if not frame or frame:IsForbidden() then return nil end
+
+    local name = frame:GetName() or ""
+
+    -- Фильтр: только рейд и пати фреймы
+    if name:find("CompactRaidGroup") or name:find("CompactRaidFrame") then
+        return msh.db.profile.raid
+    elseif name:find("CompactParty") then
+        return msh.db.profile.party
+    end
+
+    return nil
+end
 
 function msh.ApplyStyle(frame)
     if not frame or frame:IsForbidden() then return end
-    if not msh.db or not msh.db.profile then return end
 
-    local frameName = frame:GetName() or ""
-
-    -- 2. Фильтруем только нужные фреймы (Рейд или Группа)
-    local isRaid = frameName:find("CompactRaid")
-    local isParty = frameName:find("CompactParty")
-
-    if not (isRaid or isParty) or frameName:find("Pet") then
-        return
-    end
-
-    -- 3. ДИНАМИЧЕСКОЕ ПЕРЕКЛЮЧЕНИЕ КОНФИГА
-
-    if isRaid then
-        ns.cfg = msh.db.profile.raid
-    elseif isParty then
-        ns.cfg = msh.db.profile.party
-    end
+    local cfg = msh.GetConfigForFrame(frame)
+    if not cfg then return end
 
 
+    -- Передаем конфиг в ns для совместимости
+    ns.cfg = cfg
+
+    -- Создаем слои, если их нет
     if msh.CreateUnitLayers then msh.CreateUnitLayers(frame) end
-    if msh.UpdateUnitDisplay then msh.UpdateUnitDisplay(frame) end
-    if msh.UpdateHealthDisplay then msh.UpdateHealthDisplay(frame) end
+    if msh.CreateHealthLayers then msh.CreateHealthLayers(frame) end
+
+    -- Принудительно обновляем содержимое после стилизации
+    msh.UpdateUnitDisplay(frame)
+    msh.UpdateHealthDisplay(frame)
     if msh.UpdateAuras then msh.UpdateAuras(frame) end
 end
 
--- Основные хуки Blizzard
-hooksecurefunc("CompactUnitFrame_UpdateAll", msh.ApplyStyle)
-hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
-    if frame.mshLayersCreated then msh.UpdateUnitDisplay(frame) end
+-- Хук на обновление здоровья
+hooksecurefunc("CompactUnitFrame_UpdateHealth", function(frame)
+    local cfg = msh.GetConfigForFrame(frame)
+    if cfg and frame.mshHealthCreated then
+        ns.cfg = cfg
+        msh.UpdateHealthDisplay(frame)
+    end
 end)
+
+-- Хук на обновление имени и статуса
 hooksecurefunc("CompactUnitFrame_UpdateStatusText", function(frame)
-    if frame.mshLayersCreated then msh.UpdateHealthDisplay(frame) end
+    local cfg = msh.GetConfigForFrame(frame)
+    if cfg and frame.mshLayersCreated then
+        ns.cfg = cfg
+        msh.UpdateUnitDisplay(frame)
+    end
 end)
+
+-- Хук на обновление аур
 hooksecurefunc("CompactUnitFrame_UpdateAuras", function(frame)
-    if frame.mshLayersCreated then msh.UpdateAuras(frame) end
+    if frame.mshLayersCreated and msh.UpdateAuras then
+        -- ns.cfg = msh.GetConfigForFrame(frame)
+        msh.UpdateAuras(frame)
+    end
+end)
+
+-- Хук на инициализацию фрейма (когда он впервые создается игрой)
+hooksecurefunc("CompactUnitFrame_SetUpFrame", function(frame)
+    msh.ApplyStyle(frame)
+end)
+
+
+
+hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
+    local cfg = msh.GetConfigForFrame(frame)
+    if cfg and frame.mshLayersCreated then
+        ns.cfg = cfg
+        msh.UpdateUnitDisplay(frame)
+    end
 end)
 
 function msh:Refresh(full)
@@ -51,18 +85,26 @@ function msh:Refresh(full)
         return
     end
 
-    -- В обычном случае (msh:Refresh()) просто быстро обновляем визуал
+    for i = 1, 5 do
+        local pf = _G["CompactPartyFrameMember" .. i]
+        if pf then msh.ApplyStyle(pf) end
+    end
+
+    -- Обновляем Рейд (Список)
     for i = 1, 40 do
         local rf = _G["CompactRaidFrame" .. i]
-        if rf and rf:IsShown() and rf.mshLayersCreated then
-            msh.ApplyStyle(rf)
-        end
+        if rf then msh.ApplyStyle(rf) end
+    end
 
-        local pf = _G["CompactPartyFrameMember" .. i]
-        if pf and pf:IsShown() and pf.mshLayersCreated then
-            msh.ApplyStyle(pf)
+    -- Обновляем Рейд (Группы) - ТВОЙ ФИКС
+    for g = 1, 8 do
+        for m = 1, 5 do
+            local rfg = _G["CompactRaidGroup" .. g .. "Member" .. m]
+            if rfg then msh.ApplyStyle(rfg) end
         end
     end
+
+    if msh.SyncBlizzardSettings then msh.SyncBlizzardSettings() end
 end
 
 function msh:OnEnable()
@@ -80,52 +122,35 @@ function msh:OnEnable()
     end
 
     self:RegisterEvent("GROUP_ROSTER_UPDATE", function()
-        -- Даем Blizzard 0.1 сек, чтобы обновить переменные юнитов (кто в какой группе)
         C_Timer.After(0.1, function()
-            for i = 1, 40 do
-                -- Проверяем рейдовые фреймы
-                local rf = _G["CompactRaidFrame" .. i]
-                if rf and rf:IsShown() and rf.mshLayersCreated then
-                    -- Если фрейм уже существует, обновляем только данные (имя, метку, роль)
-                    msh.UpdateUnitDisplay(rf)
-                    msh.UpdateHealthDisplay(rf)
-                    if msh.UpdateAuras then msh.UpdateAuras(rf) end
-                elseif rf and rf:IsShown() then
-                    -- Если фрейм только что появился и слоев нет — инициализируем полностью
-                    msh.ApplyStyle(rf)
-                end
-
-                -- Проверяем пати фреймы
-                local pf = _G["CompactPartyFrameMember" .. i]
-                if pf and pf:IsShown() and pf.mshLayersCreated then
-                    msh.UpdateUnitDisplay(pf)
-                    msh.UpdateHealthDisplay(pf)
-                    if msh.UpdateAuras then msh.UpdateAuras(pf) end
-                elseif pf and pf:IsShown() then
-                    msh.ApplyStyle(pf)
-                end
-            end
-
-            -- Синхронизируем настройки (скрытие заголовков групп и т.д.)
-            -- Вызываем ОДИН раз вместо двух
-            if msh.SyncBlizzardSettings then
-                msh.SyncBlizzardSettings()
-            end
+            msh:Refresh()
         end)
     end)
 
     self:RegisterEvent("RAID_TARGET_UPDATE", function()
-        -- Это событие говорит: "Метки в рейде изменились!"
-        -- Мы принудительно обновляем все видимые фреймы
+        -- Обновляем группу (5 человек)
+        for i = 1, 5 do
+            local pf = _G["CompactPartyFrameMember" .. i]
+            if pf and pf:IsShown() and pf.mshLayersCreated then
+                msh.UpdateUnitDisplay(pf)
+            end
+        end
+
+        -- Обновляем рейд списком
         for i = 1, 40 do
             local rf = _G["CompactRaidFrame" .. i]
             if rf and rf:IsShown() and rf.mshLayersCreated then
                 msh.UpdateUnitDisplay(rf)
             end
+        end
 
-            local pf = _G["CompactPartyFrameMember" .. i]
-            if pf and pf:IsShown() and pf.mshLayersCreated then
-                msh.UpdateUnitDisplay(pf)
+        -- Обновляем рейд по группам
+        for g = 1, 8 do
+            for m = 1, 5 do
+                local rfg = _G["CompactRaidGroup" .. g .. "Member" .. m]
+                if rfg and rfg:IsShown() and rfg.mshLayersCreated then
+                    msh.UpdateUnitDisplay(rfg)
+                end
             end
         end
     end)

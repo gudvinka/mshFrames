@@ -40,44 +40,92 @@ local outlineOrder = {
     "OUTLINE, SLUG",
     "OUTLINE",
     "THICKOUTLINE",
-    "MONOCHROME" }
+    "MONOCHROME"
+}
 
 local function AddAuraControls(args, path, key, label, customColor)
     local toggleKey = "show" .. key
     local blizzKey = "useBlizz" .. key
     local customKey = "showCustom" .. key
     local tooltipKey = "show" .. key .. "Tooltip"
+
+    local isDebuffs = (key == "Debuffs")
+    local isBigSave = (key == "BigSave")
+
     local isDisabled = function() return not path[toggleKey] end
 
     args[toggleKey] = {
         type = "toggle",
-        name = "Включить",
+        name = "Включить " .. label .. "|r",
         order = 1,
-        get = function() return path[toggleKey] end,
+        width = "full",
+        get = function()
+            -- Если это дебаффы, всегда берем из глобала
+            if isDebuffs then return msh.db.profile.global.showDebuffs end
+            if isBigSave then return msh.db.profile.global.showBigSave end
+            return path[toggleKey]
+        end,
         set = function(_, v)
-            path[toggleKey] = v;
+            if key == "Debuffs" then
+                msh.db.profile.global.showDebuffs = v
+                msh.db.profile.party.showDebuffs = v
+                msh.db.profile.raid.showDebuffs = v
+            elseif key == "BigSave" then
+                msh.db.profile.global.showBigSave = v
+                msh.db.profile.party.showBigSave = v
+                msh.db.profile.raid.showBigSave = v
+            else
+                path[toggleKey] = v
+            end
+
+            if v and not path[blizzKey] and not path[customKey] then
+                path[blizzKey] = true
+            end
+
             msh.SyncBlizzardSettings()
             msh:Refresh()
-            LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames");
+            -- Это обновит ГУИ, чтобы галочка "нажалась" во всех вкладках сразу
+            LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
         end
+    }
+    args[tooltipKey] = {
+        type = "toggle",
+        name = "Показать Тултип",
+        desc = "Показывать описание при наведении на иконку",
+        order = 2,
+        width = "full",
+        disabled = function()
+            local isEnabled = path[toggleKey]
+            -- Если это дебаффы или сейвы, проверяем их глобальные галки
+            if isDebuffs then isEnabled = msh.db.profile.global.showDebuffs end
+            if isBigSave then isEnabled = msh.db.profile.global.showBigSave end
+
+            return not isEnabled
+        end,
+        get = function() return path[tooltipKey] end,
+        set = function(_, value)
+            path[tooltipKey] = value
+            msh:Refresh()
+        end,
     }
     args[blizzKey] = {
         type = "toggle",
-        order = 2,
+        order = 3,
         name = function()
             local color = customColor or "|cff00ffff"
-            return (not path[toggleKey] or path[customKey]) and "Стандарт Blizzard" or
-                color .. "|cff00ff00Стандарт Blizzard|r"
+            return (not path[toggleKey] or path[customKey]) and "Стандартные Blizzard" or
+                color .. "|cff00ff00Стандартные Blizzard|r"
         end,
         disabled = function() return isDisabled() or path[customKey] end,
         get = function() return path[blizzKey] end,
         set = function(_, v)
             path[blizzKey] = v; ns.needsReload = true; LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames");
+            msh:Refresh()
         end
     }
     args[customKey] = {
         type = "toggle",
-        order = 3,
+        order = 4,
         name = function()
             local color = customColor or "|cff00ffff"
             return (not path[toggleKey] or path[blizzKey]) and "Кастомные ауры" or color .. "Кастомные ауры|r"
@@ -86,18 +134,8 @@ local function AddAuraControls(args, path, key, label, customColor)
         get = function() return path[customKey] end,
         set = function(_, v)
             path[customKey] = v; ns.needsReload = true; LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames");
+            msh:Refresh()
         end
-    }
-    args[tooltipKey] = {
-        type = "toggle",
-        name = "Подсказки (Tooltip)",
-        desc = "Показывать описание при наведении на иконку.",
-        order = 5,
-        disabled = isDisabled,
-        get = function() return path[tooltipKey] end,
-        set = function(_, value)
-            path[tooltipKey] = value
-        end,
     }
 end
 
@@ -169,331 +207,329 @@ end
 -- Функция для генерации вложенных групп
 local function GetUnitGroups(path)
     local buffsArgs = {
-        warning = reloadWarning,
-        buffSize = {
-            type = "range",
-            name = "Размер",
+        appearance = {
+            type = "group",
+            name = "Внешний вид",
             order = 10,
-            min = 8,
-            max = 40,
-            step = 1,
-            disabled = function() return not path.showBuffs end,
-            get = function()
-                return
-                    path.buffSize
-            end,
-            set = function(_, v)
-                path.buffSize = v; msh:Refresh()
-            end
+            inline = true,
+            args = {
+                buffSize = {
+                    type = "range",
+                    name = "Размер",
+                    order = 10,
+                    min = 8,
+                    max = 40,
+                    step = 1,
+                    disabled = function() return not path.showBuffs end,
+                    get = function()
+                        return
+                            path.buffSize
+                    end,
+                    set = function(_, v)
+                        path.buffSize = v; msh:Refresh()
+                    end
+                },
+                showbuffTimer = {
+                    type = "toggle",
+                    name = "Таймер",
+                    order = 11,
+                    disabled = function() return not path.showBuffs end,
+                    get = function() return path.showbuffTimer end,
+                    set = function(_, v)
+                        path.showbuffTimer = v; msh:Refresh()
+                    end
+                },
+            },
+
         },
-        buffPoint = {
-            type = "select",
-            name = "Якорь",
-            order = 11,
-            values = anchorPoints,
-            disabled = function()
-                return not path.showCustomBuffs or path.useBlizzBuffs or
-                    not path.showBuffs
-            end,
-            get = function()
-                return
-                    path.buffPoint
-            end,
-            set = function(_, v)
-                path.buffPoint = v; msh:Refresh()
-            end
-        },
-        buffX = {
-            type = "range",
-            name = "X",
-            order = 12,
-            min = -100,
-            max = 100,
-            step = 1,
-            disabled = function()
-                return not path.showCustomBuffs or path.useBlizzBuffs or
-                    not path.showBuffs
-            end,
-            get = function()
-                return
-                    path.buffX
-            end,
-            set = function(_, v)
-                path.buffX = v; msh:Refresh()
-            end
-        },
-        buffY = {
-            type = "range",
-            name = "Y",
-            order = 13,
-            min = -100,
-            max = 100,
-            step = 1,
-            disabled = function()
-                return not path.showCustomBuffs or path.useBlizzBuffs or
-                    not path.showBuffs
-            end,
-            get = function()
-                return
-                    path.buffY
-            end,
-            set = function(_, v)
-                path.buffY = v; msh:Refresh()
-            end
-        },
-        buffGrow = {
-            type = "select",
-            name = "Рост",
-            order = 14,
-            values = { ["LEFT"] = "Влево", ["RIGHT"] = "Вправо", ["UP"] = "Вверх", ["DOWN"] = "Вниз" },
-            disabled = function()
-                return not path.showCustomBuffs or path.useBlizzBuffs or
-                    not path.showBuffs
-            end,
-            get = function()
-                return
-                    path.buffGrow
-            end,
-            set = function(_, v)
-                path.buffGrow = v; msh:Refresh()
-            end
-        },
-        buffSpacing = {
-            type = "range",
-            name = "Отступ",
-            order = 15,
-            min = 0,
-            max = 10,
-            step = 1,
-            disabled = function()
-                return not path.showCustomBuffs or path.useBlizzBuffs or
-                    not path.showBuffs
-            end,
-            get = function()
-                return
-                    path.buffSpacing
-            end,
-            set = function(_, v)
-                path.buffSpacing = v; msh:Refresh()
-            end
-        },
-        showbuffTimer = {
-            type = "toggle",
-            name = "Таймер",
-            order = 16,
-            disabled = function() return not path.showBuffs end,
-            get = function() return path.showbuffTimer end,
-            set = function(_, v)
-                path.showbuffTimer = v; msh:Refresh()
-            end
-        },
-        buffTextScale = {
-            type = "range",
-            name = "Масштаб текста",
-            order = 17,
-            min = 0.5,
-            max = 2,
-            step = 0.1,
-            disabled = function()
-                return not path.showCustomBuffs or path.useBlizzBuffs or
-                    not path.showBuffs
-            end,
-            get = function()
-                return
-                    path.buffTextScale
-            end,
-            set = function(_, v)
-                path.buffTextScale = v; msh:Refresh()
-            end
+
+        positioning = {
+            type = "group",
+            name = "Расположение (Кастом)",
+            order = 20,
+            inline = true,
+            disabled = function() return not path.showBuffs or path.useBlizzBuffs or not path.showCustomBuffs end,
+            args = {
+                buffPoint = {
+                    type = "select",
+                    name = "Якорь",
+                    order = 11,
+                    values = anchorPoints,
+                    disabled = function()
+                        return not path.showCustomBuffs or path.useBlizzBuffs or
+                            not path.showBuffs
+                    end,
+                    get = function()
+                        return
+                            path.buffPoint
+                    end,
+                    set = function(_, v)
+                        path.buffPoint = v; msh:Refresh()
+                    end
+                },
+                buffGrow = {
+                    type = "select",
+                    name = "Рост",
+                    order = 14,
+                    values = { ["LEFT"] = "Влево", ["RIGHT"] = "Вправо", ["UP"] = "Вверх", ["DOWN"] = "Вниз" },
+                    disabled = function()
+                        return not path.showCustomBuffs or path.useBlizzBuffs or
+                            not path.showBuffs
+                    end,
+                    get = function()
+                        return
+                            path.buffGrow
+                    end,
+                    set = function(_, v)
+                        path.buffGrow = v; msh:Refresh()
+                    end
+                },
+                buffX = {
+                    type = "range",
+                    name = "X",
+                    order = 12,
+                    min = -100,
+                    max = 100,
+                    step = 1,
+                    disabled = function()
+                        return not path.showCustomBuffs or path.useBlizzBuffs or
+                            not path.showBuffs
+                    end,
+                    get = function()
+                        return
+                            path.buffX
+                    end,
+                    set = function(_, v)
+                        path.buffX = v; msh:Refresh()
+                    end
+                },
+                buffY = {
+                    type = "range",
+                    name = "Y",
+                    order = 13,
+                    min = -100,
+                    max = 100,
+                    step = 1,
+                    disabled = function()
+                        return not path.showCustomBuffs or path.useBlizzBuffs or
+                            not path.showBuffs
+                    end,
+                    get = function()
+                        return
+                            path.buffY
+                    end,
+                    set = function(_, v)
+                        path.buffY = v; msh:Refresh()
+                    end
+                },
+                buffSpacing = {
+                    type = "range",
+                    name = "Отступ",
+                    order = 15,
+                    min = 0,
+                    max = 10,
+                    step = 1,
+                    disabled = function()
+                        return not path.showCustomBuffs or path.useBlizzBuffs or
+                            not path.showBuffs
+                    end,
+                    get = function()
+                        return
+                            path.buffSpacing
+                    end,
+                    set = function(_, v)
+                        path.buffSpacing = v; msh:Refresh()
+                    end
+                },
+
+                buffTextScale = {
+                    type = "range",
+                    name = "Масштаб текста",
+                    order = 17,
+                    min = 0.5,
+                    max = 2,
+                    step = 0.1,
+                    disabled = function()
+                        return not path.showBuffs
+                    end,
+                    get = function()
+                        return
+                            path.buffTextScale
+                    end,
+                    set = function(_, v)
+                        path.buffTextScale = v; msh:Refresh()
+                    end
+                },
+            }
         },
     }
     AddAuraControls(buffsArgs, path, "Buffs", "|cff00ffff")
 
     local debuffsArgs = {
-        showOnlyDispellable = {
-            type = "toggle",
-            name = "Только рассеиваемые",
-            desc = "Показывать только те дебаффы, которые вы можете снять своим классом.",
+        -- Группа настроек внешнего вида
+        appearance = {
+            type = "group",
+            name = "Внешний вид",
             order = 10,
+            inline = true, -- ТА САМАЯ РАМОЧКА
             disabled = function() return not path.showDebuffs end,
-            get = function() return msh.db.profile.global.showOnlyDispellable end,
-            set = function(_, v)
-                msh.db.profile.global.showOnlyDispellable = v
-                msh.SyncBlizzardSettings()
-                LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
-                msh:Refresh()
-            end,
+            args = {
+                showBossDebuffs = {
+                    type = "toggle",
+                    name = "Важные дебаффы",
+                    desc = "Показывать большие дебаффы от боссов",
+                    order = 10,
+                    disabled = function()
+                        return not msh.db.profile.global.showDebuffs or path.showCustomDebuffs
+                    end,
+                    get = function() return msh.db.profile.global.showBossDebuffs end,
+                    set = function(_, v)
+                        msh.db.profile.global.showBossDebuffs = v
+                        msh.SyncBlizzardSettings()
+                        msh:Refresh()
+                    end,
+                },
+                showOnlyDispellable = {
+                    type = "toggle",
+                    name = "Только рассеиваемые",
+                    desc = "Показывать только дебаффы, которые можно рассеять",
+                    order = 11,
+                    get = function() return msh.db.profile.global.showOnlyDispellable end,
+                    set = function(_, v)
+                        msh.db.profile.global.showOnlyDispellable = v
+                        msh.SyncBlizzardSettings()
+                        msh:Refresh()
+                    end,
+                },
+                debuffSize = {
+                    type = "range",
+                    name = "Размер иконок",
+                    order = 12,
+                    min = 8,
+                    max = 40,
+                    step = 1,
+                    disabled = function()
+                        return not msh.db.profile.global.showDebuffs or not path.showCustomDebuffs
+                    end,
+                    get = function() return path.debuffSize end,
+                    set = function(_, v)
+                        path.debuffSize = v; msh:Refresh()
+                    end
+                },
+                showDebuffTimer = {
+                    type = "toggle",
+                    name = "Таймер",
+                    order = 13,
+                    get = function() return path.showDebuffTimer end,
+                    set = function(_, v)
+                        path.showDebuffTimer = v; msh:Refresh()
+                    end
+                },
+
+
+            }
         },
-        debuffSize = {
-            type = "range",
-            name = "Размер",
-            order = 11,
-            min = 8,
-            max = 40,
-            step = 1,
-            disabled = function()
-                return not path.showDebuffs or not path.showBossDebuffs
-            end,
-            get = function()
-                return
-                    path.debuffSize
-            end,
-            set = function(_, v)
-                path.debuffSize = v; msh:Refresh()
-            end
-        },
-        debuffPoint = {
-            type = "select",
-            name = "Якорь",
-            order = 12,
-            values = anchorPoints,
-            disabled = function()
-                return not path.showDebuffs or path.useBlizzDebuffs or not path.showCustomDebuffs
-            end,
-            get = function()
-                return
-                    path.debuffPoint
-            end,
-            set = function(_, v)
-                path.debuffPoint = v; msh:Refresh()
-            end
-        },
-        debuffX = {
-            type = "range",
-            name = "X",
-            order = 13,
-            min = -100,
-            max = 100,
-            step = 1,
-            disabled = function()
-                return not path.showDebuffs or path.useBlizzDebuffs or not path.showCustomDebuffs
-            end,
-            get = function()
-                return
-                    path.debuffX
-            end,
-            set = function(_, v)
-                path.debuffX = v; msh:Refresh()
-            end
-        },
-        debuffY = {
-            type = "range",
-            name = "Y",
-            order = 14,
-            min = -100,
-            max = 100,
-            step = 1,
-            disabled = function()
-                return not path.showDebuffs or path.useBlizzDebuffs or not path.showCustomDebuffs
-            end,
-            get = function()
-                return
-                    path.debuffY
-            end,
-            set = function(_, v)
-                path.debuffY = v; msh:Refresh()
-            end
-        },
-        debuffGrow = {
-            type = "select",
-            name = "Рост",
-            order = 15,
-            values = { ["LEFT"] = "Влево", ["RIGHT"] = "Вправо", ["UP"] = "Вверх", ["DOWN"] = "Вниз" },
-            disabled = function()
-                return not path.showDebuffs or path.useBlizzDebuffs or not path.showCustomDebuffs
-            end,
-            get = function()
-                return
-                    path.debuffGrow
-            end,
-            set = function(_, v)
-                path.debuffGrow = v; msh:Refresh()
-            end
-        },
-        debuffSpacing = {
-            type = "range",
-            name = "Отступ",
-            order = 16,
-            min = 0,
-            max = 10,
-            step = 1,
-            disabled = function()
-                return not path.showDebuffs or path.useBlizzDebuffs or not path.showCustomDebuffs
-            end,
-            get = function()
-                return
-                    path.debuffSpacing
-            end,
-            set = function(_, v)
-                path.debuffSpacing = v; msh:Refresh()
-            end
-        },
-        showDebuffTimer = {
-            type = "toggle",
-            name = "Таймер",
-            order = 17,
-            disabled = function()
-                return not path.showDebuffs or not path.showBossDebuffs
-            end,
-            get = function()
-                return
-                    path.showDebuffTimer
-            end,
-            set = function(_, v)
-                path.showDebuffTimer = v; msh:Refresh()
-            end
-        },
-        debuffTextScale = {
-            type = "range",
-            name = "Масштаб текста",
-            order = 18,
-            min = 0.5,
-            max = 2,
-            step = 0.1,
-            disabled = function()
-                return not path.showDebuffs or path.useBlizzDebuffs or not path.showCustomDebuffs
-            end,
-            get = function()
-                return
-                    path.debuffTextScale
-            end,
-            set = function(_, v)
-                path.debuffTextScale = v; msh:Refresh()
-            end
-        },
-        showBossDebuffs = {
-            type = "toggle",
-            name = "Особые дебаффы боссов",
-            desc =
-            "Включает выделение важных механик. Если включено, они будут идти первыми в очереди и иметь увеличенный размер.",
-            order = 10,
-            disabled = function() return not path.showDebuffs end,
-            get = function() return path.showBossDebuffs end,
-            set = function(_, value)
-                path.showBossDebuffs = value
-                msh.SyncBlizzardSettings()
-                msh:RefreshConfig()
-            end,
-        },
-        bossDebuffScale = {
-            type = "range",
-            name = "Масштаб босс-дебаффов",
-            desc = "Множитель размера для важных аур относительно обычного дебаффа.",
-            min = 1,
-            max = 3,
-            step = 0.1,
-            order = 11,
-            disabled = function()
-                return not path.showDebuffs or not path.showBossDebuffs
-            end,
-            get = function(info) return path.bossDebuffScale or 1.5 end,
-            set = function(info, value)
-                path.bossDebuffScale = value
-                msh:RefreshConfig()
-            end,
-        },
+
+        -- Группа позиционирования
+        positioning = {
+            type = "group",
+            name = "Расположение (Кастом)",
+            order = 20,
+            inline = true,
+            args = {
+                debuffPoint = {
+                    type = "select",
+                    name = "Якорь",
+                    order = 1,
+                    values = anchorPoints,
+                    disabled = function()
+                        return not path.showDebuffs or path.useBlizzDebuffs or
+                            not path.showCustomDebuffs
+                    end,
+                    get = function() return path.debuffPoint end,
+                    set = function(_, v)
+                        path.debuffPoint = v; msh:Refresh()
+                    end
+                },
+                debuffGrow = {
+                    type = "select",
+                    name = "Рост",
+                    order = 21,
+                    values = { ["LEFT"] = "Влево", ["RIGHT"] = "Вправо", ["UP"] = "Вверх", ["DOWN"] = "Вниз" },
+                    disabled = function()
+                        return not path.showDebuffs or path.useBlizzDebuffs or
+                            not path.showCustomDebuffs
+                    end,
+                    get = function() return path.debuffGrow end,
+                    set = function(_, v)
+                        path.debuffGrow = v; msh:Refresh()
+                    end
+                },
+                debuffX = {
+                    type = "range",
+                    name = "X",
+                    order = 22,
+                    min = -100,
+                    max = 100,
+                    step = 1,
+                    disabled = function()
+                        return not path.showDebuffs or path.useBlizzDebuffs or
+                            not path.showCustomDebuffs
+                    end,
+                    get = function() return path.debuffX end,
+                    set = function(_, v)
+                        path.debuffX = v; msh:Refresh()
+                    end
+                },
+                debuffY = {
+                    type = "range",
+                    name = "Y",
+                    order = 23,
+                    min = -100,
+                    max = 100,
+                    step = 1,
+                    disabled = function()
+                        return not path.showDebuffs or path.useBlizzDebuffs or
+                            not path.showCustomDebuffs
+                    end,
+                    get = function() return path.debuffY end,
+                    set = function(_, v)
+                        path.debuffY = v; msh:Refresh()
+                    end
+                },
+                debuffSpacing = {
+                    type = "range",
+                    name = "Отступ",
+                    order = 24,
+                    min = 0,
+                    max = 10,
+                    step = 1,
+                    disabled = function()
+                        return not path.showDebuffs or path.useBlizzDebuffs or
+                            not path.showCustomDebuffs
+                    end,
+                    get = function() return path.debuffSpacing end,
+                    set = function(_, v)
+                        path.debuffSpacing = v; msh:Refresh()
+                    end
+                },
+                debuffTextScale = {
+                    type = "range",
+                    name = "Масштаб текста",
+                    order = 25,
+                    min = 0.5,
+                    max = 2,
+                    step = 0.1,
+                    disabled = function() return not path.showDebuffs end,
+                    get = function() return path.debuffTextScale end,
+                    set = function(_, v)
+                        path.debuffTextScale = v; msh:Refresh()
+                    end
+                },
+            }
+        }
     }
-    AddAuraControls(debuffsArgs, path, "Debuffs", "|cffff00ff")
+    AddAuraControls(debuffsArgs, path, "Debuffs", "Дебаффы", "|cffff00ff")
 
     local dispelIndicatorArgs = {
         dispelIndicatorMode = {
@@ -579,7 +615,6 @@ local function GetUnitGroups(path)
     }
 
     local bigSaveArgs = {
-        warning = reloadWarning,
         showBigSaveTimer = {
             type = "toggle",
             name = "Таймер",
@@ -668,7 +703,7 @@ local function GetUnitGroups(path)
             min = 0.5,
             max = 2,
             step = 0.1,
-            disabled = function() return not path.showBigSave end,
+            disabled = function() return not path.showBigSave or path.useBlizzBigSave or not path.showCustomBigSave end,
             get = function()
                 return
                     path.bigSaveTextScale
@@ -749,7 +784,7 @@ local function GetUnitGroups(path)
                 nameOutline = {
                     type = "select",
                     name = "Контур текста",
-                    order = 1.1,
+                    order = 2,
                     values = outlineModes,
                     sorting = outlineOrder,
                     get = function() return path.nameOutline or "OUTLINE" end,
@@ -760,7 +795,7 @@ local function GetUnitGroups(path)
                 fontSize = {
                     type = "range",
                     name = "Размер",
-                    order = 2,
+                    order = 3,
                     min = 6,
                     max = 32,
                     step = 1,
@@ -773,7 +808,7 @@ local function GetUnitGroups(path)
                     type = "toggle",
                     name = "Обрезать имя",
                     desc = "Включает сокращение длинных имен",
-                    order = 2.1,
+                    order = 4,
                     get = function() return path.shortenNames end,
                     set = function(_, v)
                         path.shortenNames = v; msh:Refresh()
@@ -783,7 +818,7 @@ local function GetUnitGroups(path)
                     type = "range",
                     name = "Длина имени",
                     desc = "Количество символов, если включена обрезка",
-                    order = 2.2,
+                    order = 5,
                     min = 2,
                     max = 20,
                     step = 1,
@@ -796,7 +831,7 @@ local function GetUnitGroups(path)
                 namePoint = {
                     type = "select",
                     name = "Точка привязки",
-                    order = 3,
+                    order = 6,
                     values = anchorPoints,
                     get = function() return path.namePoint end,
                     set = function(_, v)
@@ -806,7 +841,7 @@ local function GetUnitGroups(path)
                 nameX = {
                     type = "range",
                     name = "Смещение X",
-                    order = 4,
+                    order = 7,
                     min = -100,
                     max = 100,
                     step = 1,
@@ -818,7 +853,7 @@ local function GetUnitGroups(path)
                 nameY = {
                     type = "range",
                     name = "Смещение Y",
-                    order = 5,
+                    order = 8,
                     min = -100,
                     max = 100,
                     step = 1,
@@ -848,7 +883,7 @@ local function GetUnitGroups(path)
                 statusOutline = {
                     type = "select",
                     name = "Контур",
-                    order = 1.1,
+                    order = 2,
                     values = outlineModes,
                     sorting = outlineOrder,
                     get = function() return path.statusOutline or "OUTLINE" end,
@@ -859,7 +894,7 @@ local function GetUnitGroups(path)
                 fontSizeStatus = {
                     type = "range",
                     name = "Размер",
-                    order = 2,
+                    order = 3,
                     min = 6,
                     max = 32,
                     step = 1,
@@ -933,7 +968,9 @@ local function GetUnitGroups(path)
                     order = 1,
                     get = function() return path.showRaidMark end,
                     set = function(_, v)
-                        path.showRaidMark = v; msh:Refresh()
+                        path.showRaidMark = v;
+                        msh.SyncBlizzardSettings()
+                        msh:Refresh()
                     end,
                 },
                 raidMarkSize = {
@@ -992,7 +1029,7 @@ local function GetUnitGroups(path)
                 warning = reloadWarning,
                 useBlizzRole = {
                     type = "toggle",
-                    name = "|cff00ff00Использовать стандарт (Blizzard)|r",
+                    name = "|cff00ff00Использовать стандартные (Blizzard)|r",
                     desc = "Полностью отключает кастомизацию ролей и возвращает родные иконки игры.",
                     order = 0,
                     get = function(_) return path.useBlizzRole end,
@@ -1111,7 +1148,7 @@ local defaultProfile = {
     hoverAlpha = 0.2,
 
     -- Имя
-    fontName = "Default",
+    fontName = "Friz Quadrata TT",
     nameOutline = "OUTLINE",
     fontSizeName = 13,
     shortenNames = true,
@@ -1121,7 +1158,7 @@ local defaultProfile = {
     nameY = -5,
 
     -- Здоровье (CVars)
-    fontStatus = "Default",
+    fontStatus = "Friz Quadrata TT",
     statusOutline = "OUTLINE",
     fontSizeStatus = 10,
     statusPoint = "RIGHT",
@@ -1156,9 +1193,7 @@ local defaultProfile = {
     debuffSpacing = 2,
     showDebuffTimer = true,
     debuffTextScale = 0.8,
-    bossDebuffScale = 2,
     showBossDebuffs = true,
-
 
     -- Иконка диспела
     showDispelIndicator = true,
@@ -1207,6 +1242,7 @@ ns.defaults = {
         global = {
             hpMode = "PERCENT",
             showOnlyDispellable = false,
+            showBossDebuffs = true,
             raidClassColor = true,
             globalFontName = "Friz Quadrata TT",
         },
@@ -1313,7 +1349,7 @@ ns.options = {
 function msh:OnInitialize()
     -- Регистрация шрифта
     local fontName = "Montserrat-SemiBold"
-    local fontPath = "Interface\\AddOns\\mshFrames\\Media\\msh.ttf"
+    local fontPath = "Interface\\AddOns\\mshFrames\\Media\\Montserrat-SemiBold.ttf"
     LSM:Register("font", fontName, fontPath)
     if not AceGUIWidgetLSMlists.font[fontName] then AceGUIWidgetLSMlists.font[fontName] = fontName end
 
@@ -1392,6 +1428,9 @@ function msh.SyncBlizzardSettings()
     local global = profile.global
     local isRaid = IsInRaid()
     local groupCfg = isRaid and profile.raid or profile.party
+    local showBossDebuffs = msh.db.profile.global.showBossDebuffs
+    local showOnlyDispellable = msh.db.profile.global.showOnlyDispellable
+    local showBigSave = msh.db.profile.global.showBigSave
 
     if global.hpMode == "VALUE" then
         SetCVar("raidFramesHealthText", "health")
@@ -1404,13 +1443,13 @@ function msh.SyncBlizzardSettings()
     SetCVar("raidFramesDisplayClassColor", global.raidClassColor and "1" or "0")
 
     SetCVar("raidFramesDisplayDebuffs", groupCfg.showDebuffs and "1" or "0")
-    SetCVar("raidFramesDisplayOnlyDispellableDebuffs", global.showOnlyDispellable and "1" or "0")
-    SetCVar("raidFramesDisplayLargerRoleSpecificDebuffs", groupCfg.showBossDebuffs and "1" or "0")
+    SetCVar("raidFramesDisplayOnlyDispellableDebuffs", showOnlyDispellable and "1" or "0")
+    SetCVar("raidFramesDisplayLargerRoleSpecificDebuffs", showBossDebuffs and "1" or "0")
 
     local dispelVal = groupCfg.dispelIndicatorMode or "0"
     SetCVar("raidFramesDispelIndicatorType", dispelVal)
 
-    SetCVar("raidFramesCenterBigDefensive", groupCfg.showBigSave and "1" or "0")
+    SetCVar("raidFramesCenterBigDefensive", showBigSave and "1" or "0")
 
     local show = groupCfg and groupCfg.showGroups
     local alpha = show and 1 or 0
@@ -1437,15 +1476,25 @@ function msh.SyncBlizzardSettings()
 end
 
 function msh:RefreshConfig()
-    self:RefreshMenu()
+    if self.RefreshMenu then self:RefreshMenu() end
 
+    for i = 1, 5 do
+        local pf = _G["CompactPartyFrameMember" .. i]
+        if pf then msh.ApplyStyle(pf) end
+    end
 
+    -- 2. Рейд списком
     for i = 1, 40 do
         local rf = _G["CompactRaidFrame" .. i]
-        if rf and rf.mshLayersCreated then msh.ApplyStyle(rf) end
+        if rf then msh.ApplyStyle(rf) end
+    end
 
-        local pf = _G["CompactPartyFrameMember" .. i]
-        if pf and pf.mshLayersCreated then msh.ApplyStyle(pf) end
+    -- 3. Рейд по группам (1-8 группы, 1-5 мемберы)
+    for g = 1, 8 do
+        for m = 1, 5 do
+            local rfg = _G["CompactRaidGroup" .. g .. "Member" .. m]
+            if rfg then msh.ApplyStyle(rfg) end
+        end
     end
 
 

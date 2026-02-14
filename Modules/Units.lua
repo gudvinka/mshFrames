@@ -22,7 +22,7 @@ function msh.UpdateUnitDisplay(frame)
     local unit = frame.displayedUnit or frame.unit
     if not unit or not UnitExists(unit) then return end
 
-    local cfg = ns.cfg
+    local cfg = msh.GetConfigForFrame(frame)
     if not cfg then return end
 
     -- ФИКС МК и имени
@@ -34,7 +34,7 @@ function msh.UpdateUnitDisplay(frame)
 
     -- РЕЙДОВЫЕ МЕТКИ
     local index = GetRaidTargetIndex(unit)
-    if index then
+    if index and cfg.showRaidMark then
         frame.mshRaidIcon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
         frame.mshRaidIcon:SetSize(cfg.raidMarkSize or 14, cfg.raidMarkSize or 14)
         frame.mshRaidIcon:ClearAllPoints()
@@ -129,9 +129,10 @@ function msh.UpdateUnitDisplay(frame)
     end
 
     -- КЭШИРОВАНИЕ И ОБНОВЛЕНИЕ ИМЕНИ
-    local cacheKey = currentRawName .. unitGUID .. (cfg.nameLength or "10") .. tostring(cfg.shortenNames)
+    local cacheKey = currentRawName .. unitGUID .. (cfg.nameLength or "10") .. tostring(cfg.shortenNames) .. cfg
+        .fontName
     if frame.mshCachedKey ~= cacheKey then
-        local name = msh.GetShortName(unit)
+        local name = msh.GetShortName(unit, cfg)
         frame.mshName:SetText(name)
         frame.mshCachedKey = cacheKey
     end
