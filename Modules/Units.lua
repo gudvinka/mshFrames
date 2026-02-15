@@ -76,6 +76,7 @@ function msh.UpdateUnitDisplay(frame)
     if index and cfg.showRaidMark then
         frame.mshRaidIcon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
         frame.mshRaidIcon:SetSize(cfg.raidMarkSize or 14, cfg.raidMarkSize or 14)
+        frame.mshRaidIcon:SetAlpha(cfg.raidMarkAlpha or 1)
         frame.mshRaidIcon:ClearAllPoints()
         frame.mshRaidIcon:SetPoint(cfg.raidMarkPoint or "CENTER", frame, cfg.raidMarkX or 0, cfg.raidMarkY or 0)
         SetRaidTargetIconTexture(frame.mshRaidIcon, index)
@@ -110,7 +111,9 @@ function msh.UpdateUnitDisplay(frame)
             end
 
             local size = cfg.dispelIndicatorSize or 18
+            local alpha = cfg.dispelIndicatorAlpha or 1
             frame.mshDispelIndicator:SetSize(size, size)
+            frame.mshDispelIndicator:SetAlpha(alpha)
             frame.mshDispelIndicator:ClearAllPoints()
             frame.mshDispelIndicator:SetPoint(cfg.dispelIndicatorPoint or "TOPRIGHT", frame, cfg.dispelIndicatorX or 0,
                 cfg.dispelIndicatorY or 0)
@@ -198,6 +201,7 @@ function msh.UpdateUnitDisplay(frame)
                     frame.mshRole:SetAtlas(atlasName)
                     local size = cfg.roleIconSize or 12
                     frame.mshRole:SetSize(size, size)
+                    frame.mshRole:SetAlpha(cfg.roleIconAlpha or 1)
                     frame.mshRole:ClearAllPoints()
                     frame.mshRole:SetPoint(cfg.roleIconPoint or "TOPLEFT", frame, cfg.roleIconX or 2, cfg.roleIconY or -2)
                     frame.mshRole:Show()
@@ -222,7 +226,7 @@ function msh.UpdateUnitDisplay(frame)
             -- Подтягиваем размеры и координаты из твоего нового раздела в Config.lua
             local size = cfg.leaderIconSize or 12
             frame.mshLeader:SetSize(size, size)
-
+            frame.mshLeader:SetAlpha(cfg.leaderIconAlpha or 1)
             frame.mshLeader:ClearAllPoints()
             -- Применяем точку привязки и смещение X/Y из ползунков
             frame.mshLeader:SetPoint(

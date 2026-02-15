@@ -184,6 +184,18 @@ local function GetLeaderIconControls(path)
                     path.leaderIconSize = v; msh:Refresh()
                 end,
             },
+            leaderIconAlpha = {
+                type = "range",
+                name = "Прозрачность",
+                min = 0.1,
+                max = 1,
+                step = 0.1,
+                order = 6,
+                get = function() return path.leaderIconAlpha or 12 end,
+                set = function(_, v)
+                    path.leaderIconAlpha = v; msh:Refresh()
+                end,
+            },
             leaderIconPoint = {
                 name = "Точка привязки",
                 type = "select",
@@ -255,6 +267,19 @@ local function GetUnitGroups(path)
                     get = function() return path.showbuffTimer end,
                     set = function(_, v)
                         path.showbuffTimer = v; msh:Refresh()
+                    end
+                },
+                buffAlpha = {
+                    type = "range",
+                    name = "Прозрачность",
+                    min = 0.1,
+                    max = 1,
+                    step = 0.1,
+                    order = 12,
+                    disabled = function() return not path.showBuffs end,
+                    get = function() return path.buffAlpha end,
+                    set = function(_, v)
+                        path.buffAlpha = v; msh:Refresh()
                     end
                 },
             },
@@ -443,6 +468,18 @@ local function GetUnitGroups(path)
                         path.showDebuffTimer = v; msh:Refresh()
                     end
                 },
+                debuffAlpha = {
+                    type = "range",
+                    name = "Прозрачность",
+                    min = 0.1,
+                    max = 1,
+                    step = 0.1,
+                    order = 14,
+                    get = function() return path.debuffAlpha end,
+                    set = function(_, v)
+                        path.debuffAlpha = v; msh:Refresh()
+                    end
+                },
 
 
             }
@@ -604,10 +641,26 @@ local function GetUnitGroups(path)
                 path.dispelIndicatorSize = v; msh:Refresh()
             end
         },
+        dispelIndicatorAlpha = {
+            type = "range",
+            name = "Прозрачность",
+            min = 0.1,
+            max = 1,
+            step = 0.1,
+            order = 12,
+            disabled = function() return msh.db.profile.global.dispelIndicatorMode == "0" end,
+            get = function()
+                return
+                    path.dispelIndicatorAlpha
+            end,
+            set = function(_, v)
+                path.dispelIndicatorAlpha = v; msh:Refresh()
+            end
+        },
         dispelIndicatorPoint = {
             type = "select",
             name = "Якорь",
-            order = 12,
+            order = 13,
             values = anchorPoints,
             disabled = function() return msh.db.profile.global.dispelIndicatorMode == "0" end,
             get = function()
@@ -621,7 +674,7 @@ local function GetUnitGroups(path)
         dispelIndicatorX = {
             type = "range",
             name = "X",
-            order = 13,
+            order = 14,
             min = -100,
             max = 100,
             step = 1,
@@ -637,7 +690,7 @@ local function GetUnitGroups(path)
         dispelIndicatorY = {
             type = "range",
             name = "Y",
-            order = 14,
+            order = 15,
             min = -100,
             max = 100,
             step = 1,
@@ -665,6 +718,22 @@ local function GetUnitGroups(path)
             end,
             set = function(_, v)
                 path.showBigSaveTimer = v; msh:Refresh()
+            end
+        },
+        bigSaveAlpha = {
+            type = "range",
+            name = "Прозрачность",
+            min = 0.1,
+            max = 1,
+            step = 0.1,
+            order = 11,
+            disabled = function() return not path.showBigSave end,
+            get = function()
+                return
+                    path.bigSaveAlpha
+            end,
+            set = function(_, v)
+                path.bigSaveAlpha = v; msh:Refresh()
             end
         },
         bigSaveSize = {
@@ -1024,10 +1093,22 @@ local function GetUnitGroups(path)
                         path.raidMarkSize = v; msh:Refresh()
                     end,
                 },
+                raidMarkAlpha = {
+                    type = "range",
+                    name = "Прозрачность",
+                    min = 0.1,
+                    max = 1,
+                    step = 0.1,
+                    order = 3,
+                    get = function() return path.raidMarkAlpha end,
+                    set = function(_, v)
+                        path.raidMarkAlpha = v; msh:Refresh()
+                    end,
+                },
                 raidMarkPoint = {
                     type = "select",
                     name = "Якорь",
-                    order = 3,
+                    order = 4,
                     values = anchorPoints,
                     get = function() return path.raidMarkPoint end,
                     set = function(_, v)
@@ -1037,7 +1118,7 @@ local function GetUnitGroups(path)
                 raidMarkX = {
                     type = "range",
                     name = "Смещение X",
-                    order = 4,
+                    order = 5,
                     min = -100,
                     max = 100,
                     step = 1,
@@ -1049,7 +1130,7 @@ local function GetUnitGroups(path)
                 raidMarkY = {
                     type = "range",
                     name = "Смещение Y",
-                    order = 5,
+                    order = 6,
                     min = -100,
                     max = 100,
                     step = 1,
@@ -1070,7 +1151,8 @@ local function GetUnitGroups(path)
                     type = "toggle",
                     name = "|cff00ff00Использовать стандартные (Blizzard)|r",
                     desc = "Полностью отключает кастомизацию ролей и возвращает родные иконки игры.",
-                    order = 0,
+                    order = 1,
+                    width = "full",
                     get = function(_) return path.useBlizzRole end,
                     set = function(_, v)
                         path.useBlizzRole = v;
@@ -1083,7 +1165,8 @@ local function GetUnitGroups(path)
                     type = "toggle",
                     name = "Включить кастомные иконки ролей",
                     desc = "Отображает иконку танка, целителя или урона",
-                    order = 1,
+                    order = 2,
+                    width = "full",
                     disabled = function() return path.useBlizzRole end,
                     get = function(_) return path.showCustomRoleIcon end,
                     set = function(_, v)
@@ -1093,8 +1176,7 @@ local function GetUnitGroups(path)
                 showRoleTank = {
                     type = "toggle",
                     name = "Танк",
-                    order = 1.1,
-                    width = "half",
+                    order = 3,
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleTank end,
                     set = function(_, v)
@@ -1104,8 +1186,7 @@ local function GetUnitGroups(path)
                 showRoleHeal = {
                     type = "toggle",
                     name = "Хил",
-                    order = 1.2,
-                    width = "half",
+                    order = 4,
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleHeal end,
                     set = function(_, v)
@@ -1115,8 +1196,7 @@ local function GetUnitGroups(path)
                 showRoleDamager = {
                     type = "toggle",
                     name = "ДД",
-                    order = 1.3,
-                    width = "half",
+                    order = 5,
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleDamager end,
                     set = function(_, v)
@@ -1126,7 +1206,7 @@ local function GetUnitGroups(path)
                 roleIconSize = {
                     type = "range",
                     name = "Размер",
-                    order = 2,
+                    order = 6,
                     min = 8,
                     max = 40,
                     step = 1,
@@ -1136,10 +1216,23 @@ local function GetUnitGroups(path)
                         path.roleIconSize = v; msh:Refresh()
                     end,
                 },
+                roleIconAlpha = {
+                    type = "range",
+                    name = "Прозрачность",
+                    min = 0.1,
+                    max = 1,
+                    step = 0.1,
+                    order = 7,
+                    disabled = function() return path.useBlizzRole end,
+                    get = function() return path.roleIconAlpha end,
+                    set = function(_, v)
+                        path.roleIconAlpha = v; msh:Refresh()
+                    end,
+                },
                 roleIconPoint = {
                     type = "select",
                     name = "Якорь",
-                    order = 3,
+                    order = 8,
                     values = anchorPoints,
                     disabled = function() return path.useBlizzRole end,
                     get = function() return path.roleIconPoint end,
@@ -1150,7 +1243,7 @@ local function GetUnitGroups(path)
                 roleIconX = {
                     type = "range",
                     name = "Смещение X",
-                    order = 4,
+                    order = 9,
                     min = -50,
                     max = 50,
                     step = 1,
@@ -1163,7 +1256,7 @@ local function GetUnitGroups(path)
                 roleIconY = {
                     type = "range",
                     name = "Смещение Y",
-                    order = 5,
+                    order = 10,
                     min = -50,
                     max = 50,
                     step = 1,
@@ -1216,6 +1309,7 @@ local defaultProfile = {
     buffGrow = "RIGHT",
     buffSpacing = 2,
     showbuffTimer = true,
+    buffAlpha = 1,
     buffX = 2,
     buffY = 2,
 
@@ -1231,6 +1325,7 @@ local defaultProfile = {
     debuffGrow = "LEFT",
     debuffSpacing = 2,
     showDebuffTimer = true,
+    debuffAlpha = 1,
     debuffTextScale = 0.8,
     showBossDebuffs = true,
 
@@ -1238,6 +1333,7 @@ local defaultProfile = {
     showDispelIndicator = true,
     dispelIndicatorOverlay = true,
     dispelIndicatorSize = 20,
+    dispelIndicatorAlpha = 1,
     dispelIndicatorPoint = "TOPRIGHT",
     dispelIndicatorX = 0,
     dispelIndicatorY = 0,
@@ -1253,10 +1349,12 @@ local defaultProfile = {
     bigSaveX = 0,
     bigSaveY = 0,
     bigSaveTextScale = 0.8,
+    bigSaveAlpha = 1,
 
     -- Рейдовые метки
     showRaidMark = true,
     raidMarkSize = 20,
+    raidMarkAlpha = 1,
     raidMarkPoint = "TOPRIGHT",
     raidMarkX = 0,
     raidMarkY = 0,
@@ -1268,9 +1366,18 @@ local defaultProfile = {
     showRoleHeal = false,
     showRoleDamager = false,
     roleIconSize = 15,
+    roleIconAlpha = 1,
     roleIconPoint = "TOPLEFT",
     roleIconX = 2,
     roleIconY = -2,
+
+    -- Лидер
+    showLeader = true,
+    leaderSize = 20,
+    leaderPoint = "TOPLEFT",
+    leaderX = 2,
+    leaderY = -2,
+    leaderIconAlpha = 1
 
 }
 

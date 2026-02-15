@@ -46,6 +46,7 @@ function msh.UpdateAuras(frame)
             timer = cfg.showbuffTimer,
             textScale = cfg.buffTextScale,
             showtooltip = cfg.showBuffsTooltip,
+            alpha = cfg.buffAlpha or 1,
         },
         {
             pool = frame.debuffFrames,
@@ -61,6 +62,7 @@ function msh.UpdateAuras(frame)
             timer = cfg.showDebuffTimer,
             textScale = cfg.debuffTextScale,
             showtooltip = cfg.showDebuffsTooltip,
+            alpha = cfg.debuffAlpha or 1,
         },
         {
             pool = { frame.CenterDefensiveBuff or frame.centerStatusIcon },
@@ -76,6 +78,7 @@ function msh.UpdateAuras(frame)
             timer = cfg.showBigSaveTimer,
             textScale = cfg.bigSaveTextScale,
             showtooltip = cfg.showBigSaveTooltip,
+            alpha = cfg.bigSaveAlpha or 1,
         }
     }
 
@@ -93,6 +96,7 @@ function msh.UpdateAuras(frame)
                     local icon = pool[i]
                     if icon and icon:IsShown() then
                         icon:EnableMouse(data.showtooltip)
+                        icon:SetAlpha(data.alpha)
 
                         if data.isCustom or (data.pool[1] == (frame.CenterDefensiveBuff or frame.centerStatusIcon)) then
                             local currentSize = data.size or 20
