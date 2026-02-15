@@ -51,8 +51,21 @@ local function AddAuraControls(args, path, key, label, customColor)
 
     local isDebuffs = (key == "Debuffs")
     local isBigSave = (key == "BigSave")
+    local isDispelIndicator = (key == "Dispel")
 
-    local isDisabled = function() return not path[toggleKey] end
+    local isDisabled = function()
+        local mode = msh.db.profile.global.dispelIndicatorMode or "0"
+
+        if isDispelIndicator then
+            return mode == "0"
+        end
+
+        local isEnabled = path[toggleKey]
+        if isDebuffs then isEnabled = msh.db.profile.global.showDebuffs end
+        if isBigSave then isEnabled = msh.db.profile.global.showBigSave end
+
+        return not isEnabled
+    end
 
     args[toggleKey] = {
         type = "toggle",
@@ -63,17 +76,22 @@ local function AddAuraControls(args, path, key, label, customColor)
             -- Если это дебаффы, всегда берем из глобала
             if isDebuffs then return msh.db.profile.global.showDebuffs end
             if isBigSave then return msh.db.profile.global.showBigSave end
+            if isDispelIndicator then return msh.db.profile.global.showDispelIndicator end
             return path[toggleKey]
         end,
         set = function(_, v)
-            if key == "Debuffs" then
+            if isDebuffs then
                 msh.db.profile.global.showDebuffs = v
                 msh.db.profile.party.showDebuffs = v
                 msh.db.profile.raid.showDebuffs = v
-            elseif key == "BigSave" then
+            elseif isBigSave then
                 msh.db.profile.global.showBigSave = v
                 msh.db.profile.party.showBigSave = v
                 msh.db.profile.raid.showBigSave = v
+            elseif isDispelIndicator then -- Синхронизация диспела
+                msh.db.profile.global.showDispelIndicator = v
+                msh.db.profile.party.showDispelIndicator = v
+                msh.db.profile.raid.showDispelIndicator = v
             else
                 path[toggleKey] = v
             end
@@ -536,27 +554,48 @@ local function GetUnitGroups(path)
             type = "select",
             name = "Режим отображения",
             desc = "Выберите тип работы индикатора диспела (CVar)",
-            order = 1,
+            order = 10,
             values = {
                 ["0"] = "Выключено",
                 ["1"] = "Я могу рассеять",
                 ["2"] = "Показывать все",
             },
-            get = function() return path.dispelIndicatorMode or "0" end,
+            get = function() return msh.db.profile.global.dispelIndicatorMode or "0" end,
             set = function(_, v)
-                path.dispelIndicatorMode = v
+                msh.db.profile.global.dispelIndicatorMode = v
                 msh.SyncBlizzardSettings()
                 msh:Refresh()
+                LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
             end
         },
+        -- dispelIndicatorOverlay = {
+        --     type = "toggle",
+        --     name = "Подсветка рамки",
+        --     desc = "Показывать стандартную цветную рамку Blizzard при наличии дебаффа.",
+        --     order = 11,
+        --     disabled = function() return msh.db.profile.global.dispelIndicatorMode == "0" end,
+        --     get = function()
+        --         -- Если значение nil (еще не задано), считаем его включенным (true)
+        --         if msh.db.profile.global.dispelIndicatorOverlay == nil then return true end
+        --         return msh.db.profile.global.dispelIndicatorOverlay
+        --     end,
+        --     set = function(_, v)
+        --         msh.db.profile.global.dispelIndicatorOverlay = v
+        --         msh.SyncBlizzardSettings()
+        --         -- Важно вызвать принудительное обновление всех фреймов
+        --         msh:RefreshConfig()
+        --         -- Сообщаем AceConfig, что данные изменились
+        --         LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
+        --     end
+        -- },
         dispelIndicatorSize = {
             type = "range",
             name = "Размер",
-            order = 10,
+            order = 11,
             min = 8,
             max = 40,
             step = 1,
-            disabled = function() return path.dispelIndicatorMode == "0" end,
+            disabled = function() return msh.db.profile.global.dispelIndicatorMode == "0" end,
             get = function()
                 return
                     path.dispelIndicatorSize
@@ -568,9 +607,9 @@ local function GetUnitGroups(path)
         dispelIndicatorPoint = {
             type = "select",
             name = "Якорь",
-            order = 11,
+            order = 12,
             values = anchorPoints,
-            disabled = function() return path.dispelIndicatorMode == "0" end,
+            disabled = function() return msh.db.profile.global.dispelIndicatorMode == "0" end,
             get = function()
                 return
                     path.dispelIndicatorPoint
@@ -582,11 +621,11 @@ local function GetUnitGroups(path)
         dispelIndicatorX = {
             type = "range",
             name = "X",
-            order = 12,
+            order = 13,
             min = -100,
             max = 100,
             step = 1,
-            disabled = function() return path.dispelIndicatorMode == "0" end,
+            disabled = function() return msh.db.profile.global.dispelIndicatorMode == "0" end,
             get = function()
                 return
                     path.dispelIndicatorX
@@ -598,11 +637,11 @@ local function GetUnitGroups(path)
         dispelIndicatorY = {
             type = "range",
             name = "Y",
-            order = 13,
+            order = 14,
             min = -100,
             max = 100,
             step = 1,
-            disabled = function() return path.dispelIndicatorMode == "0" end,
+            disabled = function() return msh.db.profile.global.dispelIndicatorMode == "0" end,
             get = function()
                 return
                     path.dispelIndicatorY
@@ -1197,9 +1236,7 @@ local defaultProfile = {
 
     -- Иконка диспела
     showDispelIndicator = true,
-    useBlizzDispelIndicator = true,
-    showCustomDispelIndicator = false,
-    showDispelIndicatorTooltip = false,
+    dispelIndicatorOverlay = true,
     dispelIndicatorSize = 20,
     dispelIndicatorPoint = "TOPRIGHT",
     dispelIndicatorX = 0,
@@ -1431,6 +1468,8 @@ function msh.SyncBlizzardSettings()
     local showBossDebuffs = msh.db.profile.global.showBossDebuffs
     local showOnlyDispellable = msh.db.profile.global.showOnlyDispellable
     local showBigSave = msh.db.profile.global.showBigSave
+    local dispelVal = msh.db.profile.global.dispelIndicatorMode
+    -- local dispelIndicatorOverlay = msh.db.profile.global.dispelIndicatorOverlay
 
     if global.hpMode == "VALUE" then
         SetCVar("raidFramesHealthText", "health")
@@ -1446,8 +1485,8 @@ function msh.SyncBlizzardSettings()
     SetCVar("raidFramesDisplayOnlyDispellableDebuffs", showOnlyDispellable and "1" or "0")
     SetCVar("raidFramesDisplayLargerRoleSpecificDebuffs", showBossDebuffs and "1" or "0")
 
-    local dispelVal = groupCfg.dispelIndicatorMode or "0"
     SetCVar("raidFramesDispelIndicatorType", dispelVal)
+    -- SetCVar("raidFramesDispelIndicatorOverlay", dispelIndicatorOverlay and "1" or "0")
 
     SetCVar("raidFramesCenterBigDefensive", showBigSave and "1" or "0")
 

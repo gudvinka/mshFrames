@@ -11,6 +11,45 @@ function msh.CreateUnitLayers(frame)
     frame.mshRole = frame:CreateTexture(nil, "OVERLAY", nil, 7)
     frame.mshRaidIcon = frame:CreateTexture(nil, "OVERLAY", nil, 7)
     frame.mshLeader = frame:CreateTexture(nil, "OVERLAY", nil, 7)
+    frame.mshDispelIndicator = frame:CreateTexture(nil, "OVERLAY", nil, 7)
+
+    -- frame.mshDispelBorder = CreateFrame("Frame", nil, frame)
+    -- frame.mshDispelBorder:SetAllPoints(frame)
+    -- frame.mshDispelBorder:SetFrameLevel(frame:GetFrameLevel())
+    -- local function CreateBorderLine(f)
+    --     local t = f:CreateTexture(nil, "OVERLAY", nil, 1)
+    --     t:SetColorTexture(1, 1, 1) -- Белый цвет по умолчанию
+    --     return t
+    -- end
+    -- -- Верхняя линия
+    -- frame.mshDispelBorder.Top = CreateBorderLine(frame.mshDispelBorder)
+    -- frame.mshDispelBorder.Top:SetPoint("TOPLEFT", 0, 0)
+    -- frame.mshDispelBorder.Top:SetPoint("TOPRIGHT", 0, 0)
+    -- frame.mshDispelBorder.Top:SetHeight(5)
+    -- -- Нижняя линия
+    -- frame.mshDispelBorder.Bottom = CreateBorderLine(frame.mshDispelBorder)
+    -- frame.mshDispelBorder.Bottom:SetPoint("BOTTOMLEFT", 0, 0)
+    -- frame.mshDispelBorder.Bottom:SetPoint("BOTTOMRIGHT", 0, 0)
+    -- frame.mshDispelBorder.Bottom:SetHeight(5)
+    -- -- Левая линия
+    -- frame.mshDispelBorder.Left = CreateBorderLine(frame.mshDispelBorder)
+    -- frame.mshDispelBorder.Left:SetPoint("TOPLEFT", 0, 0)
+    -- frame.mshDispelBorder.Left:SetPoint("BOTTOMLEFT", 0, 0)
+    -- frame.mshDispelBorder.Left:SetWidth(5)
+    -- -- Правая линия
+    -- frame.mshDispelBorder.Right = CreateBorderLine(frame.mshDispelBorder)
+    -- frame.mshDispelBorder.Right:SetPoint("TOPRIGHT", 0, 0)
+    -- frame.mshDispelBorder.Right:SetPoint("BOTTOMRIGHT", 0, 0)
+    -- frame.mshDispelBorder.Right:SetWidth(5)
+    -- frame.mshDispelBorder:Hide()
+    -- local DebuffTypeColor = {
+    --     ["Magic"]   = { 0.20, 0.60, 1.00 },
+    --     ["Curse"]   = { 0.60, 0.00, 1.00 },
+    --     ["Disease"] = { 0.60, 0.40, 0.00 },
+    --     ["Poison"]  = { 0.00, 0.60, 0.00 },
+    --     [""]        = { 0.70, 0.70, 0.70 },
+    -- }
+
     if frame.leaderIcon then frame.leaderIcon:SetAlpha(0) end
 
     frame.mshLayersCreated = true
@@ -43,6 +82,78 @@ function msh.UpdateUnitDisplay(frame)
         frame.mshRaidIcon:Show()
     else
         frame.mshRaidIcon:Hide()
+    end
+
+    -- Индикатор диспела
+    if frame.mshDispelIndicator then
+        local globalMode = msh.db.profile.global.dispelIndicatorMode or "0"
+
+        -- local showOverlay = msh.db.profile.global.dispelIndicatorOverlay
+        -- if showOverlay == nil then showOverlay = true end
+
+        if globalMode == "0" then
+            frame.mshDispelIndicator:Hide()
+            if frame.mshDispelBorder then frame.mshDispelBorder:Hide() end
+            if frame.Border then frame.Border:SetAlpha(1) end -- Возвращаем стандарт близам
+            return
+        end
+
+        local blizzIcon = frame.dispelDebuffFrames and frame.dispelDebuffFrames[1]
+
+        if blizzIcon and blizzIcon:IsShown() then
+            -- РАБОТА С ИКОНКОЙ
+            local atlasName = blizzIcon.icon:GetAtlas()
+            if atlasName then
+                frame.mshDispelIndicator:SetAtlas(atlasName)
+            else
+                frame.mshDispelIndicator:SetTexture(blizzIcon.icon:GetTexture())
+            end
+
+            local size = cfg.dispelIndicatorSize or 18
+            frame.mshDispelIndicator:SetSize(size, size)
+            frame.mshDispelIndicator:ClearAllPoints()
+            frame.mshDispelIndicator:SetPoint(cfg.dispelIndicatorPoint or "TOPRIGHT", frame, cfg.dispelIndicatorX or 0,
+                cfg.dispelIndicatorY or 0)
+
+            frame.mshDispelIndicator:Show()
+            blizzIcon:SetAlpha(0)
+
+            -- РАБОТА С РАМКОЙ
+            --     if frame.mshDispelBorder then
+            --         if showOverlay then
+            --             local auraData = C_UnitAuras.GetAuraDataByIndex(unit, 1, "RAID")
+            --             local debuffType = auraData and auraData.dispelName
+            --             local r, g, b = 1, 0, 0
+
+            --             if debuffType and _G.DebuffTypeColor[debuffType] then
+            --                 local c = _G.DebuffTypeColor[debuffType]
+            --                 r, g, b = c.r, c.g, c.b
+            --             end
+
+            --             frame.mshDispelBorder.Top:SetVertexColor(r, g, b)
+            --             frame.mshDispelBorder.Bottom:SetVertexColor(r, g, b)
+            --             frame.mshDispelBorder.Left:SetVertexColor(r, g, b)
+            --             frame.mshDispelBorder.Right:SetVertexColor(r, g, b)
+
+            --             frame.mshDispelBorder:Show()
+            --             if frame.Border then frame.Border:SetAlpha(0) end
+            --         else
+            --             frame.mshDispelBorder:Hide()
+            --             if frame.Border then frame.Border:SetAlpha(1) end
+            --         end
+            --     end
+            -- else
+            --     -- 3. Если дебаффа НЕТ (ОБЯЗАТЕЛЬНО ПРЯЧЕМ ВСЁ)
+            --     frame.mshDispelIndicator:Hide()
+            --     if frame.mshDispelBorder then
+            --         frame.mshDispelBorder:Hide()
+            --     end
+            -- if frame.Border then
+            --     frame.Border:SetAlpha(1)
+            -- end
+        else
+            frame.mshDispelIndicator:Hide()
+        end
     end
 
     -- РОЛЬ (ТАНК, ХИЛ, ДД)

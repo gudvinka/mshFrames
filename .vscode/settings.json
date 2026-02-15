@@ -55,6 +55,7 @@
         "CompactPartyFrameTitle",
         "EditModeManagerFrame",
         "LE_PARTY_CATEGORY_HOME",
-        "RaidFrame"
+        "RaidFrame",
+        "DebuffTypeColor"
     ]
 }
