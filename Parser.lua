@@ -20,10 +20,9 @@ function msh.GetShortName(unit, cfg)
     local config = cfg or ns.cfg
     if not config or not config.shortenNames then return name end
 
-    -- Обрезка
+    -- Обрезка сервера
     local maxChars = config.nameLength or 10
 
-    -- Безопасная проверка длины
     if strlenutf8(name) > maxChars then
         local bytes, charCount, pos = #name, 0, 1
         while pos <= bytes and charCount < maxChars do

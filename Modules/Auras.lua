@@ -2,12 +2,11 @@ local _, ns = ...
 local msh = ns
 local LSM = LibStub("LibSharedMedia-3.0")
 
--- Блокировщик для предотвращения рекурсии
+
 local isSetting = false
 
 local function UpdateCooldownFont(button, fontPath, size)
     if button and button.cooldown then
-        -- Находим текст таймера внутри кулдауна
         local cdText = button.cooldown:GetRegions()
         if cdText and cdText.SetFont then
             cdText:SetFont(fontPath, size, "OUTLINE")
@@ -30,7 +29,7 @@ function msh.UpdateAuras(frame)
     local activeFont = (localFont and localFont ~= "Default" and localFont ~= "") and localFont or globalFont
     local fontPath = LSM:Fetch("font", activeFont or "Friz Quadrata TT")
 
-    -- Настройки для разных групп аур
+
     local auraSettings = {
         {
             pool = frame.buffFrames,
@@ -88,7 +87,7 @@ function msh.UpdateAuras(frame)
         if pool then
             local previousIcon = nil
 
-            -- 1. Если группа выключена — скрываем всё
+
             if not data.enabled then
                 for i = 1, #pool do if pool[i] then pool[i]:Hide() end end
             else
@@ -111,10 +110,8 @@ function msh.UpdateAuras(frame)
                         if not isBlizz then
                             icon:ClearAllPoints()
                             if not previousIcon then
-                                -- Привязка первой иконки к фрейму
                                 icon:SetPoint(data.point, frame, data.point, data.x, data.y)
                             else
-                                -- Привязка последующих иконок друг к другу
                                 local anchor, rel, offX, offY = "LEFT", "RIGHT", (data.space or 2), 0
                                 if data.grow == "LEFT" then
                                     anchor, rel, offX = "RIGHT", "LEFT", -(data.space or 2)
@@ -138,13 +135,6 @@ function msh.UpdateAuras(frame)
                     end
                 end
             end
-        end
-    end
-
-    -- Обработка диспелов (рамка/углы), если нужно
-    if frame.dispelDebuffFrames and not globalShowDebuffs then
-        for i = 1, #frame.dispelDebuffFrames do
-            frame.dispelDebuffFrames[i]:Hide()
         end
     end
 

@@ -1,8 +1,9 @@
 ## Interface: 120000
 ## Title: mshFrames
-## Version: 0.6
+## Notes: Blizzard based frames with customs
+## Version: 0.7
+## Author: gudvinka
 ## SavedVariables: mshFramesDB
-## IconTexture: Interface\HelpFrame\NewPlayerExperienceParts\newplayertutorial-icon-mouse-middlebutton
 
 Libs\LibSharedMedia-3.0\LibStub\LibStub.lua
 Libs\Ace3\CallbackHandler-1.0\CallbackHandler-1.0.xml

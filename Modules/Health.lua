@@ -7,7 +7,6 @@ local isUpdating = false
 function msh.CreateHealthLayers(frame)
     if frame.mshHealthCreated then return end
 
-    -- Создаем кастомный текст
     frame.mshHP = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 
     if not frame.mshHoverTex then
@@ -33,7 +32,6 @@ function msh.CreateHealthLayers(frame)
         end)
     end
 
-    -- Прячем стандартный текст, чтобы он не двоился
     if frame.statusText then frame.statusText:SetAlpha(0) end
 
     frame.mshHealthCreated = true
@@ -49,7 +47,6 @@ function msh.UpdateHealthDisplay(frame)
         msh.CreateHealthLayers(frame)
     end
 
-    -- Умный выбор шрифта (как в юнитах)
     local globalFont = msh.db.profile.global.globalFontName
     local localFont = cfg.fontStatus
 
@@ -64,26 +61,20 @@ function msh.UpdateHealthDisplay(frame)
 
     isUpdating = true
 
-    -- 1. Текстура полоски
     local texturePath = LSM:Fetch("statusbar", cfg.texture)
     if frame.healthBar:GetStatusBarTexture():GetTexture() ~= texturePath then
         frame.healthBar:SetStatusBarTexture(texturePath)
     end
 
-    -- 2. Логика отображения ХП
     if cfg.hpMode == "NONE" then
         if frame.mshHP then frame.mshHP:Hide() end
     else
-        -- Берем текст Blizzard
         local blizzText = frame.statusText and frame.statusText:GetText() or ""
-        -- local font = LSM:Fetch("font", cfg.fontStatus)
         local fontPath = LSM:Fetch("font", cfg.fontStatus or "Friz Quadrata TT")
 
         frame.mshHP:SetFont(fontPath, cfg.fontSizeStatus, cfg.statusOutline)
-
         frame.mshHP:ClearAllPoints()
         frame.mshHP:SetPoint(cfg.statusPoint or "TOP", frame, cfg.statusX or 0, cfg.statusY or 0)
-
         frame.mshHP:SetText(blizzText)
         frame.mshHP:Show()
     end

@@ -18,7 +18,7 @@ function msh.CreateUnitLayers(frame)
     -- frame.mshDispelBorder:SetFrameLevel(frame:GetFrameLevel())
     -- local function CreateBorderLine(f)
     --     local t = f:CreateTexture(nil, "OVERLAY", nil, 1)
-    --     t:SetColorTexture(1, 1, 1) -- Белый цвет по умолчанию
+    --     t:SetColorTexture(1, 1, 1)
     --     return t
     -- end
     -- -- Верхняя линия
@@ -95,14 +95,13 @@ function msh.UpdateUnitDisplay(frame)
         if globalMode == "0" then
             frame.mshDispelIndicator:Hide()
             if frame.mshDispelBorder then frame.mshDispelBorder:Hide() end
-            if frame.Border then frame.Border:SetAlpha(1) end -- Возвращаем стандарт близам
+            if frame.Border then frame.Border:SetAlpha(1) end
             return
         end
 
         local blizzIcon = frame.dispelDebuffFrames and frame.dispelDebuffFrames[1]
 
         if blizzIcon and blizzIcon:IsShown() then
-            -- РАБОТА С ИКОНКОЙ
             local atlasName = blizzIcon.icon:GetAtlas()
             if atlasName then
                 frame.mshDispelIndicator:SetAtlas(atlasName)
@@ -121,7 +120,7 @@ function msh.UpdateUnitDisplay(frame)
             frame.mshDispelIndicator:Show()
             blizzIcon:SetAlpha(0)
 
-            -- РАБОТА С РАМКОЙ
+            -- Рамка
             --     if frame.mshDispelBorder then
             --         if showOverlay then
             --             local auraData = C_UnitAuras.GetAuraDataByIndex(unit, 1, "RAID")
@@ -217,28 +216,24 @@ function msh.UpdateUnitDisplay(frame)
         local isLeader = UnitIsGroupLeader(unit)
         local isAssistant = UnitIsGroupAssistant(unit)
 
-        -- Проверяем, включена ли иконка в настройках (по умолчанию true)
+
         if (isLeader or isAssistant) and (cfg.showLeaderIcon ~= false) then
-            -- сначала иконка лидера, потом асиста
             frame.mshLeader:SetAtlas(isLeader and "BuildanAbomination-32x32" or "poi-soulspiritghost")
             frame.mshLeader:SetDrawLayer("OVERLAY", 1)
 
-            -- Подтягиваем размеры и координаты из твоего нового раздела в Config.lua
             local size = cfg.leaderIconSize or 12
             frame.mshLeader:SetSize(size, size)
             frame.mshLeader:SetAlpha(cfg.leaderIconAlpha or 1)
             frame.mshLeader:ClearAllPoints()
-            -- Применяем точку привязки и смещение X/Y из ползунков
+
             frame.mshLeader:SetPoint(
                 cfg.leaderIconPoint or "TOPLEFT",
                 frame,
                 cfg.leaderIconX or 0,
                 cfg.leaderIconY or 0
             )
-
             frame.mshLeader:Show()
         else
-            -- Если игрока разжаловали или иконка выключена в меню — скрываем
             frame.mshLeader:Hide()
         end
     end

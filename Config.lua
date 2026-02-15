@@ -15,8 +15,6 @@ local reloadWarning = {
     order = 0,
     hidden = function() return not ns.needsReload end,
 }
-
--- СПИСКИ ДЛЯ ВЫПАДАЮЩИХ МЕНЮ
 local anchorPoints = {
     ["TOPLEFT"] = "Сверху слева",
     ["TOP"] = "Сверху",
@@ -48,7 +46,6 @@ local function AddAuraControls(args, path, key, label, customColor)
     local blizzKey = "useBlizz" .. key
     local customKey = "showCustom" .. key
     local tooltipKey = "show" .. key .. "Tooltip"
-
     local isDebuffs = (key == "Debuffs")
     local isBigSave = (key == "BigSave")
     local isDispelIndicator = (key == "Dispel")
@@ -73,7 +70,6 @@ local function AddAuraControls(args, path, key, label, customColor)
         order = 1,
         width = "full",
         get = function()
-            -- Если это дебаффы, всегда берем из глобала
             if isDebuffs then return msh.db.profile.global.showDebuffs end
             if isBigSave then return msh.db.profile.global.showBigSave end
             if isDispelIndicator then return msh.db.profile.global.showDispelIndicator end
@@ -88,7 +84,7 @@ local function AddAuraControls(args, path, key, label, customColor)
                 msh.db.profile.global.showBigSave = v
                 msh.db.profile.party.showBigSave = v
                 msh.db.profile.raid.showBigSave = v
-            elseif isDispelIndicator then -- Синхронизация диспела
+            elseif isDispelIndicator then
                 msh.db.profile.global.showDispelIndicator = v
                 msh.db.profile.party.showDispelIndicator = v
                 msh.db.profile.raid.showDispelIndicator = v
@@ -102,7 +98,7 @@ local function AddAuraControls(args, path, key, label, customColor)
 
             msh.SyncBlizzardSettings()
             msh:Refresh()
-            -- Это обновит ГУИ, чтобы галочка "нажалась" во всех вкладках сразу
+
             LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
         end
     }
@@ -114,7 +110,7 @@ local function AddAuraControls(args, path, key, label, customColor)
         width = "full",
         disabled = function()
             local isEnabled = path[toggleKey]
-            -- Если это дебаффы или сейвы, проверяем их глобальные галки
+
             if isDebuffs then isEnabled = msh.db.profile.global.showDebuffs end
             if isBigSave then isEnabled = msh.db.profile.global.showBigSave end
 
@@ -161,7 +157,7 @@ local function GetLeaderIconControls(path)
     return {
         name = "Иконка лидера",
         type = "group",
-        order = 7, -- Порядок в списке (после Ролей)
+        order = 7,
         args = {
             showLeaderIcon = {
                 name = "Включить иконку",
@@ -234,7 +230,6 @@ local function GetLeaderIconControls(path)
     }
 end
 
--- Функция для генерации вложенных групп
 local function GetUnitGroups(path)
     local buffsArgs = {
         appearance = {
@@ -409,12 +404,11 @@ local function GetUnitGroups(path)
     AddAuraControls(buffsArgs, path, "Buffs", "|cff00ffff")
 
     local debuffsArgs = {
-        -- Группа настроек внешнего вида
         appearance = {
             type = "group",
             name = "Внешний вид",
             order = 10,
-            inline = true, -- ТА САМАЯ РАМОЧКА
+            inline = true,
             disabled = function() return not path.showDebuffs end,
             args = {
                 showBossDebuffs = {
@@ -480,12 +474,9 @@ local function GetUnitGroups(path)
                         path.debuffAlpha = v; msh:Refresh()
                     end
                 },
-
-
             }
         },
 
-        -- Группа позиционирования
         positioning = {
             type = "group",
             name = "Расположение (Кастом)",
@@ -705,7 +696,6 @@ local function GetUnitGroups(path)
         },
 
     }
-
     local bigSaveArgs = {
         showBigSaveTimer = {
             type = "toggle",
@@ -820,14 +810,10 @@ local function GetUnitGroups(path)
                 path.bigSaveTextScale = v; msh:Refresh()
             end
         },
-
-
     }
     AddAuraControls(bigSaveArgs, path, "BigSave", "|cffff0000")
 
-
     return {
-
         general = {
             name = "Общие",
             type = "group",
@@ -1064,7 +1050,6 @@ local function GetUnitGroups(path)
                 bigSave = { name = "Центральный Сейв", type = "group", order = 4, args = bigSaveArgs },
             }
         },
-
         raidMarks = {
             name = "Рейдовые метки",
             type = "group",
@@ -1395,7 +1380,6 @@ ns.defaults = {
     }
 }
 
--- Главное окно
 ns.options = {
     type = "group",
     name = "mshFrames",
@@ -1415,7 +1399,6 @@ ns.options = {
                     dialogControl = "LSM30_Font",
                     get = function() return msh.db.profile.global.globalFontName end,
                     set = function(_, value)
-                        -- 1. Ставим само значение глобального шрифта
                         msh.db.profile.global.globalFontName = value
 
                         msh.db.profile.party.fontName = value
@@ -1491,15 +1474,12 @@ ns.options = {
 }
 
 function msh:OnInitialize()
-    -- Регистрация шрифта
     local fontName = "Montserrat-SemiBold"
     local fontPath = "Interface\\AddOns\\mshFrames\\Media\\Montserrat-SemiBold.ttf"
     LSM:Register("font", fontName, fontPath)
     if not AceGUIWidgetLSMlists.font[fontName] then AceGUIWidgetLSMlists.font[fontName] = fontName end
 
-    -- Загружаем БД
     self.db = LibStub("AceDB-3.0"):New("mshFramesDB", ns.defaults, true)
-
 
     ns.options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
     ns.options.args.profiles.name = "Профили"
@@ -1537,17 +1517,13 @@ function msh:OnInitialize()
 
     self:RefreshMenu()
 
-    -- Подписываемся на события смены профиля
-
     self.db.RegisterCallback(msh, "OnProfileChanged", "RefreshConfig")
     self.db.RegisterCallback(msh, "OnProfileCopied", "RefreshConfig")
     self.db.RegisterCallback(msh, "OnProfileReset", "RefreshConfig")
 
-
     AceConfig:RegisterOptionsTable("mshFrames", ns.options)
     self.optionsFrame = AceConfigDialog:AddToBlizOptions("mshFrames", "mshFrames")
 
-    -- Слэш-команда
     SLASH_MSH1 = "/msh"
     SlashCmdList["MSH"] = function()
         AceConfigDialog:SetDefaultSize("mshFrames", 1000, 600)
@@ -1564,7 +1540,6 @@ function msh:RefreshMenu()
     LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames")
 end
 
--- СИНХРОНИЗАЦИЯ С CVARS (Системные настройки)
 function msh.SyncBlizzardSettings()
     local profile = msh.db and msh.db.profile
     if not profile then return end
@@ -1629,13 +1604,13 @@ function msh:RefreshConfig()
         if pf then msh.ApplyStyle(pf) end
     end
 
-    -- 2. Рейд списком
+
     for i = 1, 40 do
         local rf = _G["CompactRaidFrame" .. i]
         if rf then msh.ApplyStyle(rf) end
     end
 
-    -- 3. Рейд по группам (1-8 группы, 1-5 мемберы)
+
     for g = 1, 8 do
         for m = 1, 5 do
             local rfg = _G["CompactRaidGroup" .. g .. "Member" .. m]
