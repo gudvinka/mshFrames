@@ -20,5 +20,32 @@ jobs:
           archive-name: mshFrames
           addon-name: mshFrames
         env:
-         CF_API_KEY: ${{ secrets.CF_API_KEY }} # Ключ от CurseForge
-         WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }} # Если решишь добавить Wago/WowUp
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup and Rename Zip
+        run: |
+          ORIGINAL_ZIP=$(ls mshFrames*.zip)
+          echo "Found archive: $ORIGINAL_ZIP"
+          
+          unzip $ORIGINAL_ZIP -d temp_folder
+          
+          rm -rf temp_folder/mshFrames/.github
+          rm -rf temp_folder/mshFrames/.vscode
+          rm -rf temp_folder/mshFrames/.gitignore
+          rm -rf temp_folder/mshFrames/.pkgmeta
+          
+          cd temp_folder
+          zip -r ../mshFrames.zip mshFrames
+          cd ..
+          
+          rm $ORIGINAL_ZIP
+
+      - name: Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: mshFrames.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
