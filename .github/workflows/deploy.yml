@@ -16,6 +16,9 @@ jobs:
 
       - name: Package and Release
         uses: BigWigsMods/packager@master
+        with:
+          archive-name: mshFrames
+          addon-name: mshFrames
         env:
          CF_API_KEY: ${{ secrets.CF_API_KEY }} # Ключ от CurseForge
          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }} # Если решишь добавить Wago/WowUp

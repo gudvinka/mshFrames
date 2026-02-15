@@ -1481,6 +1481,14 @@ function msh:OnInitialize()
 
     self.db = LibStub("AceDB-3.0"):New("mshFramesDB", ns.defaults, true)
 
+    if not self.db.profile.global then
+        self.db.profile.global = {
+            globalFontName = "Friz Quadrata TT",
+            showDebuffs = true,
+            showBigSave = true,
+        }
+    end
+
     ns.options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
     ns.options.args.profiles.name = "Профили"
     ns.options.args.profiles.order = 100

@@ -1,12 +1,10 @@
 package-as: mshFrames
 
-externals: {}
-
-
-
 ignore:
-  - .github
-  - .gitignore
-  - .pkgmeta
-  - README.md
-  - LICENSE
+  - ".github"
+  - ".vscode"
+  - ".gitignore"
+  - ".pkgmeta"
+  - "README.md"
+  - "LICENSE"
+  - "*.yml"

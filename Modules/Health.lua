@@ -42,7 +42,7 @@ end
 function msh.UpdateHealthDisplay(frame)
     if isUpdating or not frame or frame:IsForbidden() then return end
 
-    local cfg = ns.cfg
+    local cfg = msh.GetConfigForFrame(frame)
     if not cfg or not frame.healthBar then return end
 
     if not frame.mshHealthCreated then

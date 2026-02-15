@@ -18,7 +18,7 @@ function msh.UpdateAuras(frame)
     if not frame or frame:IsForbidden() or isSetting then return end
 
     local cfg = msh.GetConfigForFrame(frame)
-    if not cfg then return end
+    if not cfg or not msh.db or not msh.db.profile then return end
 
     isSetting = true
 
