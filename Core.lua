@@ -18,7 +18,7 @@ function msh.GetConfigForFrame(frame)
     end
 
 
-    return msh.db.profile
+    return nil
 end
 
 function msh.ApplyStyle(frame)

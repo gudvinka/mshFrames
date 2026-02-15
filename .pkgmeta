@@ -1,16 +1,6 @@
 package-as: mshFrames
 
-externals:
-  Libs/LibStub: https://github.com/lua-wow/LibStub/
-  Libs/CallbackHandler-1.0: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
-  Libs/Ace3: https://github.com/WoWUIDev/Ace3
-  Libs/LibSharedMedia-3.0: https://repos.curseforge.com/wow/libsharedmedia-3-0/trunk
-  Libs/AceGUI-3.0-SharedMediaWidgets: https://repos.curseforge.com/wow/ace-gui-3-0-shared-media-widgets/trunk
-  Libs/LibSerialize: https://repos.wowace.com/wow/libserialize/trunk
-    Libraries/LibDeflate:
-        url: https://github.com/SafeteeWoW/LibDeflate.git
-        tag: latest
-  
+externals: {}
 
 
 
