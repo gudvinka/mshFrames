@@ -3,7 +3,7 @@ package-as: mshFrames
 externals:
   Libs/LibStub: https://repos.wowace.com/wow/libstub/mainline/trunk
   Libs/CallbackHandler-1.0: https://repos.wowace.com/wow/callbackhandler/mainline/trunk
-  Libs/Ace3: https://repos.wowace.com/wow/ace3/mainline/trunk
+  Libs/Ace3: https://github.com/Stanzilla/Ace3.git
   Libs/LibSharedMedia-3.0: https://repos.wowace.com/wow/lib-shared-media-3-0/mainline/trunk
   Libs/AceGUI-3.0-SharedMediaWidgets: https://repos.wowace.com/wow/ace-gui-3-0-shared-media-widgets/mainline/trunk
   Libs/LibSerialize: https://github.com/Ross-G/LibSerialize.git
@@ -15,4 +15,3 @@ ignore:
   - .pkgmeta
   - README.md
   - LICENSE
-  - Media/*.png
