@@ -39,13 +39,16 @@ function msh.UpdateUnitDisplay(frame)
     local fontPath = LSM:Fetch("font", fontName)
     local fontSize = cfg.fontSizeName or 10
     local fontOutline = cfg.nameOutline or "OUTLINE"
+    local offsetX = cfg.nameX or 0
+
 
     frame.mshName:SetFont(fontPath, fontSize, fontOutline)
     frame.mshName:ClearAllPoints()
     frame.mshName:SetPoint(cfg.namePoint or "CENTER", frame, cfg.nameX or 0, cfg.nameY or 0)
     frame.mshName:SetJustifyH("LEFT")
     frame.mshName:SetTextColor(1, 1, 1)
-    frame.mshName:SetWidth(frame:GetWidth())
+    local calculatedWidth = frame:GetWidth() - math.abs(offsetX)
+    frame.mshName:SetWidth(math.max(1, calculatedWidth - 5))
     frame.mshName:SetMaxLines(1)
 
     if frame.name then frame.name:SetAlpha(0) end
