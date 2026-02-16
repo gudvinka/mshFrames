@@ -1,7 +1,7 @@
 ## Interface: 120000
 ## Title: mshFrames
 ## Notes: Blizzard based frames with customs
-## Version: 0.9
+## Version: @project-version@
 ## Author: gudvinka
 ## SavedVariables: mshFramesDB
 ## IconTexture: Interface\AddOns\mshFrames\Media\logo.tga
