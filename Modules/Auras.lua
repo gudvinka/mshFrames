@@ -108,7 +108,7 @@ function msh.UpdateAuras(frame)
                             end
                         end
 
-                        -- 3. ПОЗИЦИОНИРОВАНИЕ
+
                         if not isBlizz then
                             icon:ClearAllPoints()
                             if not previousIcon then
@@ -127,7 +127,7 @@ function msh.UpdateAuras(frame)
                             previousIcon = icon
                         end
 
-                        -- 3. ТАЙМЕРЫ И ШРИФТЫ
+
                         if icon.cooldown then
                             icon.cooldown:SetHideCountdownNumbers(not data.timer)
                             local currentWidth = icon:GetWidth()

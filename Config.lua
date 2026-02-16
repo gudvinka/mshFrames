@@ -1213,32 +1213,25 @@ local function GetUnitGroups(path)
     }
 end
 
--- Дефолты
-local defaultProfile = {
-    unit_name = true,
-    unit_health = true,
-    unit_power = true,
-    unit_mana = true,
-    unit_level = true,
-    unit_class = true,
-    textScale = 0.7,
 
-    -- General
+local defaultProfile = {
+
+
     texture = "Solid",
     showGroups = true,
     hoverAlpha = 0.2,
 
-    -- Имя
+
     fontName = "Friz Quadrata TT",
-    nameOutline = "OUTLINE, SLUG",
+    nameOutline = "OUTLINE",
     fontSizeName = 13,
     shortenNames = true,
     nameLength = 5,
     namePoint = "TOP",
     nameX = 0,
-    nameY = -5,
+    nameY = 0,
 
-    -- Здоровье (CVars)
+
     fontStatus = "Friz Quadrata TT",
     statusOutline = "OUTLINE",
     fontSizeStatus = 10,
@@ -1246,8 +1239,8 @@ local defaultProfile = {
     statusX = -2,
     statusY = 0,
 
-    -- Ауры
-    -- Баффы
+
+
     showBuffs = true,
     useBlizzBuffs = true,
     showCustomBuffs = false,
@@ -1262,7 +1255,7 @@ local defaultProfile = {
     buffX = 2,
     buffY = 2,
 
-    -- Дебаффы
+
     showDebuffs = true,
     useBlizzDebuffs = true,
     showCustomDebuffs = false,
@@ -1278,7 +1271,7 @@ local defaultProfile = {
     debuffTextScale = 0.8,
     showBossDebuffs = true,
 
-    -- Иконка диспела
+
     showDispelIndicator = true,
     dispelIndicatorOverlay = true,
     dispelIndicatorSize = 20,
@@ -1287,7 +1280,7 @@ local defaultProfile = {
     dispelIndicatorX = 0,
     dispelIndicatorY = 0,
 
-    -- Центральный сейв
+
     showBigSave = true,
     useBlizzBigSave = true,
     showCustomBigSave = false,
@@ -1300,7 +1293,7 @@ local defaultProfile = {
     bigSaveTextScale = 0.8,
     bigSaveAlpha = 1,
 
-    -- Рейдовые метки
+
     showRaidMark = true,
     raidMarkSize = 20,
     raidMarkAlpha = 1,
@@ -1308,7 +1301,7 @@ local defaultProfile = {
     raidMarkX = 0,
     raidMarkY = 0,
 
-    -- Иконки ролей
+
     useBlizzRole = true,
     showCustomRoleIcon = false,
     showRoleTank = false,
@@ -1320,7 +1313,7 @@ local defaultProfile = {
     roleIconX = 2,
     roleIconY = -2,
 
-    -- Лидер
+
     showLeader = true,
     leaderSize = 20,
     leaderPoint = "TOPLEFT",
@@ -1525,7 +1518,7 @@ function msh.SyncBlizzardSettings()
     local showOnlyDispellable = msh.db.profile.global.showOnlyDispellable
     local showBigSave = msh.db.profile.global.showBigSave
     local dispelVal = msh.db.profile.global.dispelIndicatorMode
-    -- local dispelIndicatorOverlay = msh.db.profile.global.dispelIndicatorOverlay
+
 
     if global.hpMode == "VALUE" then
         SetCVar("raidFramesHealthText", "health")
@@ -1542,7 +1535,7 @@ function msh.SyncBlizzardSettings()
     SetCVar("raidFramesDisplayLargerRoleSpecificDebuffs", showBossDebuffs and "1" or "0")
 
     SetCVar("raidFramesDispelIndicatorType", dispelVal)
-    -- SetCVar("raidFramesDispelIndicatorOverlay", dispelIndicatorOverlay and "1" or "0")
+
 
     SetCVar("raidFramesCenterBigDefensive", showBigSave and "1" or "0")
 
@@ -1553,7 +1546,7 @@ function msh.SyncBlizzardSettings()
         CompactRaidFrameManager.displayFrame:SetAlpha(alpha)
     end
 
-    -- левая боковая панель с названием группы в рейде
+
     if CompactPartyFrameTitle then
         CompactPartyFrameTitle:SetAlpha(alpha)
     end
@@ -1571,29 +1564,28 @@ function msh.SyncBlizzardSettings()
 end
 
 function msh:RefreshConfig()
-    if self.RefreshMenu then self:RefreshMenu() end
+    C_Timer.After(0.2, function()
+        if self.RefreshMenu then self:RefreshMenu() end
 
-    for i = 1, 5 do
-        local pf = _G["CompactPartyFrameMember" .. i]
-        if pf then msh.ApplyStyle(pf) end
-    end
-
-
-    for i = 1, 40 do
-        local rf = _G["CompactRaidFrame" .. i]
-        if rf then msh.ApplyStyle(rf) end
-    end
-
-
-    for g = 1, 8 do
-        for m = 1, 5 do
-            local rfg = _G["CompactRaidGroup" .. g .. "Member" .. m]
-            if rfg then msh.ApplyStyle(rfg) end
+        for i = 1, 5 do
+            local pf = _G["CompactPartyFrameMember" .. i]
+            if pf then msh.ApplyStyle(pf) end
         end
-    end
 
+        for i = 1, 40 do
+            local rf = _G["CompactRaidFrame" .. i]
+            if rf then msh.ApplyStyle(rf) end
+        end
 
-    if msh.SyncBlizzardSettings then msh.SyncBlizzardSettings() end
+        for g = 1, 8 do
+            for m = 1, 5 do
+                local rfg = _G["CompactRaidGroup" .. g .. "Member" .. m]
+                if rfg then msh.ApplyStyle(rfg) end
+            end
+        end
+
+        if msh.SyncBlizzardSettings then msh.SyncBlizzardSettings() end
+    end)
 end
 
 function msh:GetExportString()
@@ -1632,7 +1624,6 @@ function msh:ImportProfileFromString(str)
 end
 
 function msh:SetupConfig()
-    -- Инициализация БД с дефолтами
     self.db = LibStub("AceDB-3.0"):New("mshFramesDB", ns.defaults, true)
     self.db.RegisterCallback(msh, "OnProfileReset", "RefreshConfig")
     self.db.RegisterCallback(msh, "OnProfileChanged", "RefreshConfig")
@@ -1640,10 +1631,10 @@ function msh:SetupConfig()
 
     local options = {
         name = "mshFrames",
-        handler = msh, -- указываем обработчик msh
+        handler = msh,
         type = "group",
         args = {
-            -- твои настройки здесь
+
         },
     }
 
