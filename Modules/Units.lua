@@ -5,13 +5,13 @@ local LSM = LibStub("LibSharedMedia-3.0")
 function msh.CreateUnitLayers(frame)
     if frame.mshLayersCreated then return end
 
-    frame.mshName = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    frame.mshName = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall", 8)
     if frame.name then frame.name:SetAlpha(0) end
 
-    frame.mshRole = frame:CreateTexture(nil, "OVERLAY", nil, 7)
-    frame.mshRaidIcon = frame:CreateTexture(nil, "OVERLAY", nil, 7)
-    frame.mshLeader = frame:CreateTexture(nil, "OVERLAY", nil, 7)
-    frame.mshDispelIndicator = frame:CreateTexture(nil, "OVERLAY", nil, 7)
+    frame.mshRole = frame:CreateTexture(nil, "OVERLAY", nil, 5)
+    frame.mshRaidIcon = frame:CreateTexture(nil, "OVERLAY", nil, 5)
+    frame.mshLeader = frame:CreateTexture(nil, "OVERLAY", nil, 5)
+    frame.mshDispelIndicator = frame:CreateTexture(nil, "OVERLAY", nil, 5)
 
     if frame.leaderIcon then frame.leaderIcon:SetAlpha(0) end
 
@@ -33,23 +33,21 @@ function msh.UpdateUnitDisplay(frame)
 
     if not cfg then return end
 
-    frame.mshName:SetText((UnitName(unit)))
-
     local fontName = cfg.fontName or "Friz Quadrata TT"
     local fontPath = LSM:Fetch("font", fontName)
     local fontSize = cfg.fontSizeName or 10
     local fontOutline = cfg.nameOutline or "OUTLINE"
-    local offsetX = cfg.nameX or 0
+
+    local maxChars = cfg.nameLength or 10
+    local displayName = msh.GetShortName(unit, maxChars)
+    frame.mshName:SetText(displayName)
 
 
-    frame.mshName:SetFont(fontPath, fontSize, fontOutline)
     frame.mshName:ClearAllPoints()
     frame.mshName:SetPoint(cfg.namePoint or "CENTER", frame, cfg.nameX or 0, cfg.nameY or 0)
-    frame.mshName:SetJustifyH("LEFT")
+
+    frame.mshName:SetFont(fontPath, fontSize, fontOutline)
     frame.mshName:SetTextColor(1, 1, 1)
-    local calculatedWidth = frame:GetWidth() - math.abs(offsetX)
-    frame.mshName:SetWidth(math.max(1, calculatedWidth - 5))
-    frame.mshName:SetMaxLines(1)
 
     if frame.name then frame.name:SetAlpha(0) end
     frame.mshName:Show()

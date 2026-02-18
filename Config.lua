@@ -878,6 +878,18 @@ local function GetUnitGroups(path)
                         path.fontSizeName = v; msh:Refresh()
                     end,
                 },
+                nameLength = {
+                    type = "range",
+                    name = "Длина имени",
+                    order = 4,
+                    min = 2,
+                    max = 30,
+                    step = 1,
+                    get = function() return path.nameLength end,
+                    set = function(_, v)
+                        path.nameLength = v; msh:Refresh()
+                    end,
+                },
                 namePoint = {
                     type = "select",
                     name = "Точка привязки",
@@ -1336,6 +1348,7 @@ ns.options = {
             order = 1,
             args = {
                 header = { name = "Системные настройки Blizzard", type = "header", order = 1 },
+                warning = reloadWarning,
                 globalFont = {
                     name = "Глобальный шрифт",
                     desc = "Устанавливает этот шрифт для всех текстов в аддоне.",
@@ -1376,6 +1389,8 @@ ns.options = {
                     set = function(_, v)
                         msh.db.profile.global.hpMode = v
                         msh.SyncBlizzardSettings()
+                        ns.needsReload = true
+                        LibStub("AceConfigRegistry-3.0"):NotifyChange("mshFrames");
                         msh:Refresh()
                     end,
                 },

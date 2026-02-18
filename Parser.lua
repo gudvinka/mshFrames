@@ -1,7 +1,33 @@
 local _, ns = ...
 local msh = ns
 
-function msh.GetShortName(unit, cfg)
+local function utf8sub(str, start, numChars)
+    local startIndex = min(1, start)
+    local currentIndex = 1
+    local numSubstr = 0
+    while currentIndex <= #str and numSubstr < numChars do
+        local char = string.byte(str, currentIndex)
+        if char > 240 then
+            currentIndex = currentIndex + 4
+        elseif char > 225 then
+            currentIndex = currentIndex + 3
+        elseif char > 192 then
+            currentIndex = currentIndex + 2
+        else
+            currentIndex = currentIndex + 1
+        end
+        numSubstr = numSubstr + 1
+    end
+    return str:sub(startIndex, currentIndex - 1)
+end
+
+function msh.GetShortName(unit, maxChars)
     if not unit or not UnitExists(unit) then return "" end
-    return GetUnitName(unit, not cfg.shortenNames) or ""
+    local name = UnitName(unit) or ""
+
+    if maxChars and maxChars > 0 and #name > maxChars then
+        return utf8sub(name, 1, maxChars)
+    end
+
+    return name
 end
