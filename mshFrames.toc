@@ -1,7 +1,7 @@
 ## Interface: 120000
 ## Title: mshFrames
 ## Notes: Blizzard based frames with customs
-## Version: 0.9
+## Version: 0.11
 ## Author: gudvinka
 ## SavedVariables: mshFramesDB
 ## IconTexture: Interface\AddOns\mshFrames\Media\logo.tga
@@ -20,6 +20,8 @@ Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
 Libs\LibSerialize\LibSerialize.lua
 Libs\LibDeflate\LibDeflate.lua
 
+Locales\enUS.lua
+Locales\ruRU.lua
 Core.lua
 Config.lua
 Parser.lua

@@ -5,33 +5,34 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
 local LibS = LibStub("LibSerialize")
 local LibD = LibStub("LibDeflate")
+local L = LibStub("AceLocale-3.0"):GetLocale("mshFrames")
 
 ns.needsReload = false
 
 local reloadWarning = {
     type = "description",
-    name = "\n|cffff0000ВНИМАНИЕ:|r Требуется |cffffff00/reload|r для применения настроек.\n",
+    name = "\n|cffff0000" .. L["ВНИМАНИЕ:"] .. "|r " .. L["Требуется /reload для применения настроек."] .. "\n",
     fontSize = "medium",
     order = 0,
     hidden = function() return not ns.needsReload end,
 }
 local anchorPoints = {
-    ["TOPLEFT"] = "Сверху слева",
-    ["TOP"] = "Сверху",
-    ["TOPRIGHT"] = "Сверху справа",
-    ["LEFT"] = "Слева",
-    ["CENTER"] = "Центр",
-    ["RIGHT"] = "Справа",
-    ["BOTTOMLEFT"] = "Снизу слева",
-    ["BOTTOM"] = "Снизу",
-    ["BOTTOMRIGHT"] = "Снизу справа",
+    ["TOPLEFT"] = L["Сверху слева"],
+    ["TOP"] = L["Сверху"],
+    ["TOPRIGHT"] = L["Сверху справа"],
+    ["LEFT"] = L["Слева"],
+    ["CENTER"] = L["Центр"],
+    ["RIGHT"] = L["Справа"],
+    ["BOTTOMLEFT"] = L["Снизу слева"],
+    ["BOTTOM"] = L["Снизу"],
+    ["BOTTOMRIGHT"] = L["Снизу справа"],
 }
 local outlineModes = {
-    ["NONE"] = "Нет",
-    ["OUTLINE, SLUG"] = "Тонкий Красивый",
-    ["OUTLINE"] = "Тонкий Уродский",
-    ["THICKOUTLINE"] = "Жирный",
-    ["MONOCHROME"] = "Пиксельный",
+    ["NONE"] = L["Нет"],
+    ["OUTLINE, SLUG"] = L["Тонкий Красивый"],
+    ["OUTLINE"] = L["Тонкий Уродский"],
+    ["THICKOUTLINE"] = L["Жирный"],
+    ["MONOCHROME"] = L["Пиксельный"],
 }
 local outlineOrder = {
     "NONE",
@@ -66,7 +67,7 @@ local function AddAuraControls(args, path, key, label, customColor)
 
     args[toggleKey] = {
         type = "toggle",
-        name = "Включить " .. label .. "|r",
+        name = L["Включить"] .. label .. "|r",
         order = 1,
         width = "full",
         get = function()
@@ -104,8 +105,8 @@ local function AddAuraControls(args, path, key, label, customColor)
     }
     args[tooltipKey] = {
         type = "toggle",
-        name = "Показать Тултип",
-        desc = "Показывать описание при наведении на иконку",
+        name = L["Показать Тултип"],
+        desc = L["Показывать описание при наведении на иконку"],
         order = 2,
         width = "full",
         disabled = function()
@@ -126,9 +127,13 @@ local function AddAuraControls(args, path, key, label, customColor)
         type = "toggle",
         order = 3,
         name = function()
+            local text = L["Стандартные Blizzard"]
             local color = customColor or "|cff00ffff"
-            return (not path[toggleKey] or path[customKey]) and "Стандартные Blizzard" or
-                color .. "|cff00ff00Стандартные Blizzard|r"
+            if (not path[toggleKey] or path[customKey]) then
+                return text
+            else
+                return color .. "|cff00ff00" .. text .. "|r"
+            end
         end,
         disabled = function() return isDisabled() or path[customKey] end,
         get = function() return path[blizzKey] end,
@@ -141,8 +146,13 @@ local function AddAuraControls(args, path, key, label, customColor)
         type = "toggle",
         order = 4,
         name = function()
+            local text = L["Кастомные ауры"]
             local color = customColor or "|cff00ffff"
-            return (not path[toggleKey] or path[blizzKey]) and "Кастомные ауры" or color .. "Кастомные ауры|r"
+            if (not path[toggleKey] or path[blizzKey]) then
+                return text
+            else
+                return color .. "|cff00ff00" .. text .. "|r"
+            end
         end,
         disabled = function() return isDisabled() or path[blizzKey] end,
         get = function() return path[customKey] end,
@@ -155,12 +165,12 @@ end
 
 local function GetLeaderIconControls(path)
     return {
-        name = "Иконка лидера",
+        name = L["Иконка лидера"],
         type = "group",
         order = 7,
         args = {
             showLeaderIcon = {
-                name = "Включить иконку",
+                name = L["Включить иконку"],
                 type = "toggle",
                 order = 1,
                 get = function() return path.showLeaderIcon ~= false end,
@@ -169,7 +179,7 @@ local function GetLeaderIconControls(path)
                 end,
             },
             leaderIconSize = {
-                name = "Размер",
+                name = L["Размер"],
                 type = "range",
                 min = 8,
                 max = 40,
@@ -182,7 +192,7 @@ local function GetLeaderIconControls(path)
             },
             leaderIconAlpha = {
                 type = "range",
-                name = "Прозрачность",
+                name = L["Прозрачность"],
                 min = 0.1,
                 max = 1,
                 step = 0.1,
@@ -193,7 +203,7 @@ local function GetLeaderIconControls(path)
                 end,
             },
             leaderIconPoint = {
-                name = "Точка привязки",
+                name = L["Точка привязки"],
                 type = "select",
                 values = anchorPoints,
                 order = 3,
@@ -203,7 +213,7 @@ local function GetLeaderIconControls(path)
                 end,
             },
             leaderIconX = {
-                name = "Смещение X",
+                name = L["Смещение X"],
                 type = "range",
                 min = -100,
                 max = 100,
@@ -215,7 +225,7 @@ local function GetLeaderIconControls(path)
                 end,
             },
             leaderIconY = {
-                name = "Смещение Y",
+                name = L["Смещение Y"],
                 type = "range",
                 min = -100,
                 max = 100,
@@ -234,13 +244,13 @@ local function GetUnitGroups(path)
     local buffsArgs = {
         appearance = {
             type = "group",
-            name = "Внешний вид",
+            name = L["Внешний вид"],
             order = 10,
             inline = true,
             args = {
                 buffSize = {
                     type = "range",
-                    name = "Размер",
+                    name = L["Размер"],
                     order = 10,
                     min = 8,
                     max = 40,
@@ -256,7 +266,7 @@ local function GetUnitGroups(path)
                 },
                 showbuffTimer = {
                     type = "toggle",
-                    name = "Таймер",
+                    name = L["Таймер"],
                     order = 11,
                     disabled = function() return not path.showBuffs end,
                     get = function() return path.showbuffTimer end,
@@ -266,7 +276,7 @@ local function GetUnitGroups(path)
                 },
                 buffAlpha = {
                     type = "range",
-                    name = "Прозрачность",
+                    name = L["Прозрачность"],
                     min = 0.1,
                     max = 1,
                     step = 0.1,
@@ -283,14 +293,14 @@ local function GetUnitGroups(path)
 
         positioning = {
             type = "group",
-            name = "Расположение (Кастом)",
+            name = L["Расположение (Кастом)"],
             order = 20,
             inline = true,
             disabled = function() return not path.showBuffs or path.useBlizzBuffs or not path.showCustomBuffs end,
             args = {
                 buffPoint = {
                     type = "select",
-                    name = "Якорь",
+                    name = L["Точка привязки"],
                     order = 11,
                     values = anchorPoints,
                     disabled = function()
@@ -307,9 +317,9 @@ local function GetUnitGroups(path)
                 },
                 buffGrow = {
                     type = "select",
-                    name = "Рост",
+                    name = L["Рост"],
                     order = 14,
-                    values = { ["LEFT"] = "Влево", ["RIGHT"] = "Вправо", ["UP"] = "Вверх", ["DOWN"] = "Вниз" },
+                    values = { ["LEFT"] = L["Слева"], ["RIGHT"] = L["Справа"], ["UP"] = L["Сверху"], ["DOWN"] = L["Снизу"] },
                     disabled = function()
                         return not path.showCustomBuffs or path.useBlizzBuffs or
                             not path.showBuffs
@@ -324,7 +334,7 @@ local function GetUnitGroups(path)
                 },
                 buffX = {
                     type = "range",
-                    name = "X",
+                    name = L["Смещение X"],
                     order = 12,
                     min = -100,
                     max = 100,
@@ -343,7 +353,7 @@ local function GetUnitGroups(path)
                 },
                 buffY = {
                     type = "range",
-                    name = "Y",
+                    name = L["Смещение Y"],
                     order = 13,
                     min = -100,
                     max = 100,
@@ -362,7 +372,7 @@ local function GetUnitGroups(path)
                 },
                 buffSpacing = {
                     type = "range",
-                    name = "Отступ",
+                    name = L["Отступ"],
                     order = 15,
                     min = 0,
                     max = 10,
@@ -382,7 +392,7 @@ local function GetUnitGroups(path)
 
                 buffTextScale = {
                     type = "range",
-                    name = "Масштаб текста",
+                    name = L["Масштаб текста"],
                     order = 17,
                     min = 0.5,
                     max = 2,
@@ -401,20 +411,20 @@ local function GetUnitGroups(path)
             }
         },
     }
-    AddAuraControls(buffsArgs, path, "Buffs", "|cff00ffff")
+    AddAuraControls(buffsArgs, path, L["Баффы"], "|cff00ffff")
 
     local debuffsArgs = {
         appearance = {
             type = "group",
-            name = "Внешний вид",
+            name = L["Внешний вид"],
             order = 10,
             inline = true,
             disabled = function() return not path.showDebuffs end,
             args = {
                 showBossDebuffs = {
                     type = "toggle",
-                    name = "Важные дебаффы",
-                    desc = "Показывать большие дебаффы от боссов",
+                    name = L["Важные дебаффы"],
+                    desc = L["Показывать большие дебаффы от боссов"],
                     order = 10,
                     disabled = function()
                         return not msh.db.profile.global.showDebuffs or path.showCustomDebuffs
@@ -428,8 +438,8 @@ local function GetUnitGroups(path)
                 },
                 showOnlyDispellable = {
                     type = "toggle",
-                    name = "Только рассеиваемые",
-                    desc = "Показывать только дебаффы, которые можно рассеять",
+                    name = L["Только рассеиваемые"],
+                    desc = L["Показывать только дебаффы, которые можно рассеять"],
                     order = 11,
                     get = function() return msh.db.profile.global.showOnlyDispellable end,
                     set = function(_, v)
@@ -440,7 +450,7 @@ local function GetUnitGroups(path)
                 },
                 debuffSize = {
                     type = "range",
-                    name = "Размер иконок",
+                    name = L["Размер иконок"],
                     order = 12,
                     min = 8,
                     max = 40,
@@ -455,7 +465,7 @@ local function GetUnitGroups(path)
                 },
                 showDebuffTimer = {
                     type = "toggle",
-                    name = "Таймер",
+                    name = L["Таймер"],
                     order = 13,
                     get = function() return path.showDebuffTimer end,
                     set = function(_, v)
@@ -464,7 +474,7 @@ local function GetUnitGroups(path)
                 },
                 debuffAlpha = {
                     type = "range",
-                    name = "Прозрачность",
+                    name = L["Прозрачность"],
                     min = 0.1,
                     max = 1,
                     step = 0.1,
@@ -479,13 +489,13 @@ local function GetUnitGroups(path)
 
         positioning = {
             type = "group",
-            name = "Расположение (Кастом)",
+            name = L["Расположение (Кастом)"],
             order = 20,
             inline = true,
             args = {
                 debuffPoint = {
                     type = "select",
-                    name = "Якорь",
+                    name = L["Точка привязки"],
                     order = 1,
                     values = anchorPoints,
                     disabled = function()
@@ -499,9 +509,9 @@ local function GetUnitGroups(path)
                 },
                 debuffGrow = {
                     type = "select",
-                    name = "Рост",
+                    name = L["Рост"],
                     order = 21,
-                    values = { ["LEFT"] = "Влево", ["RIGHT"] = "Вправо", ["UP"] = "Вверх", ["DOWN"] = "Вниз" },
+                    values = { ["LEFT"] = L["Слева"], ["RIGHT"] = L["Справа"], ["UP"] = L["Сверху"], ["DOWN"] = L["Снизу"] },
                     disabled = function()
                         return not path.showDebuffs or path.useBlizzDebuffs or
                             not path.showCustomDebuffs
@@ -513,7 +523,7 @@ local function GetUnitGroups(path)
                 },
                 debuffX = {
                     type = "range",
-                    name = "X",
+                    name = L["Смещение X"],
                     order = 22,
                     min = -100,
                     max = 100,
@@ -529,7 +539,7 @@ local function GetUnitGroups(path)
                 },
                 debuffY = {
                     type = "range",
-                    name = "Y",
+                    name = L["Смещение Y"],
                     order = 23,
                     min = -100,
                     max = 100,
@@ -545,7 +555,7 @@ local function GetUnitGroups(path)
                 },
                 debuffSpacing = {
                     type = "range",
-                    name = "Отступ",
+                    name = L["Отступ"],
                     order = 24,
                     min = 0,
                     max = 10,
@@ -561,7 +571,7 @@ local function GetUnitGroups(path)
                 },
                 debuffTextScale = {
                     type = "range",
-                    name = "Масштаб текста",
+                    name = L["Масштаб текста"],
                     order = 25,
                     min = 0.5,
                     max = 2,
@@ -575,18 +585,18 @@ local function GetUnitGroups(path)
             }
         }
     }
-    AddAuraControls(debuffsArgs, path, "Debuffs", "Дебаффы", "|cffff00ff")
+    AddAuraControls(debuffsArgs, path, L["Дебаффы"], "|cffff00ff")
 
     local dispelIndicatorArgs = {
         dispelIndicatorMode = {
             type = "select",
-            name = "Режим отображения",
-            desc = "Выберите тип работы индикатора диспела (CVar)",
+            name = L["Режим отображения"],
+            desc = L["Выберите тип работы индикатора диспела (CVar)"],
             order = 10,
             values = {
-                ["0"] = "Выключено",
-                ["1"] = "Я могу рассеять",
-                ["2"] = "Показывать все",
+                ["0"] = L["Выключено"],
+                ["1"] = L["Я могу рассеять"],
+                ["2"] = L["Показывать все"],
             },
             get = function() return msh.db.profile.global.dispelIndicatorMode or "0" end,
             set = function(_, v)
@@ -598,7 +608,7 @@ local function GetUnitGroups(path)
         },
         dispelIndicatorSize = {
             type = "range",
-            name = "Размер",
+            name = L["Размер"],
             order = 11,
             min = 8,
             max = 40,
@@ -614,7 +624,7 @@ local function GetUnitGroups(path)
         },
         dispelIndicatorAlpha = {
             type = "range",
-            name = "Прозрачность",
+            name = L["Прозрачность"],
             min = 0.1,
             max = 1,
             step = 0.1,
@@ -630,7 +640,7 @@ local function GetUnitGroups(path)
         },
         dispelIndicatorPoint = {
             type = "select",
-            name = "Якорь",
+            name = L["Точка привязки"],
             order = 13,
             values = anchorPoints,
             disabled = function() return msh.db.profile.global.dispelIndicatorMode == "0" end,
@@ -644,7 +654,7 @@ local function GetUnitGroups(path)
         },
         dispelIndicatorX = {
             type = "range",
-            name = "X",
+            name = L["Смещение X"],
             order = 14,
             min = -100,
             max = 100,
@@ -660,7 +670,7 @@ local function GetUnitGroups(path)
         },
         dispelIndicatorY = {
             type = "range",
-            name = "Y",
+            name = L["Смещение Y"],
             order = 15,
             min = -100,
             max = 100,
@@ -679,7 +689,7 @@ local function GetUnitGroups(path)
     local bigSaveArgs = {
         showBigSaveTimer = {
             type = "toggle",
-            name = "Таймер",
+            name = L["Таймер"],
             order = 10,
             disabled = function() return not path.showBigSave end,
             get = function()
@@ -692,7 +702,7 @@ local function GetUnitGroups(path)
         },
         bigSaveAlpha = {
             type = "range",
-            name = "Прозрачность",
+            name = L["Прозрачность"],
             min = 0.1,
             max = 1,
             step = 0.1,
@@ -708,7 +718,7 @@ local function GetUnitGroups(path)
         },
         bigSaveSize = {
             type = "range",
-            name = "Размер",
+            name = L["Размер"],
             order = 11,
             min = 10,
             max = 60,
@@ -724,7 +734,7 @@ local function GetUnitGroups(path)
         },
         bigSavePoint = {
             type = "select",
-            name = "Якорь",
+            name = L["Точка привязки"],
             order = 12,
             values = anchorPoints,
             disabled = function()
@@ -740,7 +750,7 @@ local function GetUnitGroups(path)
         },
         bigSaveX = {
             type = "range",
-            name = "X",
+            name = L["Смещение X"],
             order = 13,
             min = -100,
             max = 100,
@@ -758,7 +768,7 @@ local function GetUnitGroups(path)
         },
         bigSaveY = {
             type = "range",
-            name = "Y",
+            name = L["Смещение Y"],
             order = 14,
             min = -100,
             max = 100,
@@ -776,7 +786,7 @@ local function GetUnitGroups(path)
         },
         bigSaveTextScale = {
             type = "range",
-            name = "Масштаб текста",
+            name = L["Масштаб текста"],
             order = 15,
             min = 0.5,
             max = 2,
@@ -795,12 +805,12 @@ local function GetUnitGroups(path)
 
     return {
         general = {
-            name = "Общие",
+            name = L["Общие"],
             type = "group",
             order = 1,
             args = {
                 texture = {
-                    name = "Текстура",
+                    name = L["Текстура"],
                     type = "select",
                     dialogControl = "LSM30_Statusbar",
                     order = 1,
@@ -812,8 +822,8 @@ local function GetUnitGroups(path)
                 },
 
                 showGroups = {
-                    name = "Заголовки групп",
-                    desc = "Показывать названия групп",
+                    name = L["Заголовки групп"],
+                    desc = L["Показывать названия групп"],
                     type = "toggle",
                     order = 2,
                     get = function() return path.showGroups end,
@@ -824,8 +834,8 @@ local function GetUnitGroups(path)
                     end,
                 },
                 hoverAlpha = {
-                    name = "Яркость подсветки",
-                    desc = "Прозрачность блика при наведении мыши.",
+                    name = L["Яркость подсветки"],
+                    desc = L["Прозрачность блика при наведении мыши."],
                     type = "range",
                     order = 3,
                     min = 0,
@@ -840,13 +850,13 @@ local function GetUnitGroups(path)
             }
         },
         names = {
-            name = "Имена",
+            name = L["Имена"],
             type = "group",
             order = 2,
             args = {
                 fontName = {
                     type = "select",
-                    name = "Шрифт имени",
+                    name = L["Шрифт"],
                     order = 1,
                     values = LSM:HashTable("font"),
                     dialogControl = "LSM30_Font",
@@ -857,7 +867,7 @@ local function GetUnitGroups(path)
                 },
                 nameOutline = {
                     type = "select",
-                    name = "Контур текста",
+                    name = L["Контур"],
                     order = 2,
                     values = outlineModes,
                     sorting = outlineOrder,
@@ -868,7 +878,7 @@ local function GetUnitGroups(path)
                 },
                 fontSize = {
                     type = "range",
-                    name = "Размер",
+                    name = L["Размер"],
                     order = 3,
                     min = 6,
                     max = 32,
@@ -880,7 +890,7 @@ local function GetUnitGroups(path)
                 },
                 nameLength = {
                     type = "range",
-                    name = "Длина имени",
+                    name = L["Длина имени"],
                     order = 4,
                     min = 2,
                     max = 30,
@@ -892,7 +902,7 @@ local function GetUnitGroups(path)
                 },
                 namePoint = {
                     type = "select",
-                    name = "Точка привязки",
+                    name = L["Точка привязки"],
                     order = 6,
                     values = anchorPoints,
                     get = function() return path.namePoint end,
@@ -902,7 +912,7 @@ local function GetUnitGroups(path)
                 },
                 nameX = {
                     type = "range",
-                    name = "Смещение X",
+                    name = L["Смещение X"],
                     order = 7,
                     min = -100,
                     max = 100,
@@ -914,7 +924,7 @@ local function GetUnitGroups(path)
                 },
                 nameY = {
                     type = "range",
-                    name = "Смещение Y",
+                    name = L["Смещение Y"],
                     order = 8,
                     min = -100,
                     max = 100,
@@ -927,13 +937,13 @@ local function GetUnitGroups(path)
             }
         },
         hp = {
-            name = "Здоровье",
+            name = L["Здоровье"],
             type = "group",
             order = 3,
             args = {
                 fontStatus = {
                     type = "select",
-                    name = "Шрифт",
+                    name = L["Шрифт"],
                     order = 1,
                     values = LSM:HashTable("font"),
                     dialogControl = "LSM30_Font",
@@ -944,7 +954,7 @@ local function GetUnitGroups(path)
                 },
                 statusOutline = {
                     type = "select",
-                    name = "Контур",
+                    name = L["Контур"],
                     order = 2,
                     values = outlineModes,
                     sorting = outlineOrder,
@@ -955,7 +965,7 @@ local function GetUnitGroups(path)
                 },
                 fontSizeStatus = {
                     type = "range",
-                    name = "Размер",
+                    name = L["Размер"],
                     order = 3,
                     min = 6,
                     max = 32,
@@ -967,7 +977,7 @@ local function GetUnitGroups(path)
                 },
                 statusPoint = {
                     type = "select",
-                    name = "Якорь ХП",
+                    name = L["Точка привязки"],
                     order = 4,
                     values = anchorPoints,
                     get = function() return path.statusPoint end,
@@ -977,7 +987,7 @@ local function GetUnitGroups(path)
                 },
                 statusX = {
                     type = "range",
-                    name = "X",
+                    name = L["Смещение X"],
                     order = 5,
                     min = -100,
                     max = 100,
@@ -992,7 +1002,7 @@ local function GetUnitGroups(path)
                 },
                 statusY = {
                     type = "range",
-                    name = "Y",
+                    name = L["Смещение Y"],
                     order = 6,
                     min = -100,
                     max = 100,
@@ -1008,24 +1018,24 @@ local function GetUnitGroups(path)
             }
         },
         auras = {
-            name = "Ауры",
+            name = L["Ауры"],
             type = "group",
             order = 4,
             args = {
-                buffs = { name = "Баффы", type = "group", order = 1, args = buffsArgs },
-                debuffs = { name = "Дебаффы", type = "group", order = 2, args = debuffsArgs },
-                dispelIndicator = { name = "Иконка диспела", type = "group", order = 3, args = dispelIndicatorArgs },
-                bigSave = { name = "Центральный Сейв", type = "group", order = 4, args = bigSaveArgs },
+                buffs = { name = L["Баффы"], type = "group", order = 1, args = buffsArgs },
+                debuffs = { name = L["Дебаффы"], type = "group", order = 2, args = debuffsArgs },
+                dispelIndicator = { name = L["Иконка диспела"], type = "group", order = 3, args = dispelIndicatorArgs },
+                bigSave = { name = L["Центральный Сейв"], type = "group", order = 4, args = bigSaveArgs },
             }
         },
         raidMarks = {
-            name = "Рейдовые метки",
+            name = L["Рейдовые метки"],
             type = "group",
             order = 5,
             args = {
                 showRaidMark = {
                     type = "toggle",
-                    name = "Включить метки",
+                    name = L["Включить метки"],
                     order = 1,
                     get = function() return path.showRaidMark end,
                     set = function(_, v)
@@ -1036,7 +1046,7 @@ local function GetUnitGroups(path)
                 },
                 raidMarkSize = {
                     type = "range",
-                    name = "Размер",
+                    name = L["Размер"],
                     order = 2,
                     min = 8,
                     max = 60,
@@ -1048,7 +1058,7 @@ local function GetUnitGroups(path)
                 },
                 raidMarkAlpha = {
                     type = "range",
-                    name = "Прозрачность",
+                    name = L["Прозрачность"],
                     min = 0.1,
                     max = 1,
                     step = 0.1,
@@ -1060,7 +1070,7 @@ local function GetUnitGroups(path)
                 },
                 raidMarkPoint = {
                     type = "select",
-                    name = "Якорь",
+                    name = L["Точка привязки"],
                     order = 4,
                     values = anchorPoints,
                     get = function() return path.raidMarkPoint end,
@@ -1070,7 +1080,7 @@ local function GetUnitGroups(path)
                 },
                 raidMarkX = {
                     type = "range",
-                    name = "Смещение X",
+                    name = L["Смещение X"],
                     order = 5,
                     min = -100,
                     max = 100,
@@ -1082,7 +1092,7 @@ local function GetUnitGroups(path)
                 },
                 raidMarkY = {
                     type = "range",
-                    name = "Смещение Y",
+                    name = L["Смещение Y"],
                     order = 6,
                     min = -100,
                     max = 100,
@@ -1095,15 +1105,15 @@ local function GetUnitGroups(path)
             }
         },
         roles = {
-            name = "Иконки ролей",
+            name = L["Иконки ролей"],
             type = "group",
             order = 6,
             args = {
                 warning = reloadWarning,
                 useBlizzRole = {
                     type = "toggle",
-                    name = "|cff00ff00Использовать стандартные (Blizzard)|r",
-                    desc = "Полностью отключает кастомизацию ролей и возвращает родные иконки игры.",
+                    name = L["Стандартные Blizzard"],
+                    desc = L["Полностью отключает кастомизацию ролей и возвращает родные иконки игры."],
                     order = 1,
                     width = "full",
                     get = function(_) return path.useBlizzRole end,
@@ -1116,8 +1126,8 @@ local function GetUnitGroups(path)
                 },
                 showCustomRoleIcon = {
                     type = "toggle",
-                    name = "Включить кастомные иконки ролей",
-                    desc = "Отображает иконку танка, целителя или урона",
+                    name = L["Включить кастомные иконки ролей"],
+                    desc = L["Отображает иконку танка, целителя или урона"],
                     order = 2,
                     width = "full",
                     disabled = function() return path.useBlizzRole end,
@@ -1128,7 +1138,7 @@ local function GetUnitGroups(path)
                 },
                 showRoleTank = {
                     type = "toggle",
-                    name = "Танк",
+                    name = L["Танк"],
                     order = 3,
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleTank end,
@@ -1138,7 +1148,7 @@ local function GetUnitGroups(path)
                 },
                 showRoleHeal = {
                     type = "toggle",
-                    name = "Хил",
+                    name = L["Хил"],
                     order = 4,
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleHeal end,
@@ -1148,7 +1158,7 @@ local function GetUnitGroups(path)
                 },
                 showRoleDamager = {
                     type = "toggle",
-                    name = "ДД",
+                    name = L["ДД"],
                     order = 5,
                     disabled = function() return path.useBlizzRole or not path.showCustomRoleIcon end,
                     get = function() return path.showRoleDamager end,
@@ -1158,7 +1168,7 @@ local function GetUnitGroups(path)
                 },
                 roleIconSize = {
                     type = "range",
-                    name = "Размер",
+                    name = L["Размер"],
                     order = 6,
                     min = 8,
                     max = 40,
@@ -1171,7 +1181,7 @@ local function GetUnitGroups(path)
                 },
                 roleIconAlpha = {
                     type = "range",
-                    name = "Прозрачность",
+                    name = L["Прозрачность"],
                     min = 0.1,
                     max = 1,
                     step = 0.1,
@@ -1184,7 +1194,7 @@ local function GetUnitGroups(path)
                 },
                 roleIconPoint = {
                     type = "select",
-                    name = "Якорь",
+                    name = L["Точка привязки"],
                     order = 8,
                     values = anchorPoints,
                     disabled = function() return path.useBlizzRole end,
@@ -1195,7 +1205,7 @@ local function GetUnitGroups(path)
                 },
                 roleIconX = {
                     type = "range",
-                    name = "Смещение X",
+                    name = L["Смещение X"],
                     order = 9,
                     min = -50,
                     max = 50,
@@ -1208,7 +1218,7 @@ local function GetUnitGroups(path)
                 },
                 roleIconY = {
                     type = "range",
-                    name = "Смещение Y",
+                    name = L["Смещение Y"],
                     order = 10,
                     min = -50,
                     max = 50,
@@ -1347,11 +1357,11 @@ ns.options = {
             type = "group",
             order = 1,
             args = {
-                header = { name = "Системные настройки Blizzard", type = "header", order = 1 },
+                header = { name = L["Стандартные Blizzard"], type = "header", order = 1 },
                 warning = reloadWarning,
                 globalFont = {
-                    name = "Глобальный шрифт",
-                    desc = "Устанавливает этот шрифт для всех текстов в аддоне.",
+                    name = L["Глобальный шрифт"],
+                    desc = L["Устанавливает этот шрифт для всех текстов в аддоне."],
                     type = "select",
                     order = 2,
                     values = function() return LibStub("LibSharedMedia-3.0"):HashTable("font") end,
@@ -1376,14 +1386,14 @@ ns.options = {
                     end,
                 },
                 hpMode = {
-                    name = "Формат данных ХП",
-                    desc = "Влияет на то, какие данные Blizzard готовит для отображения (CVar)",
+                    name = L["Формат данных ХП"],
+                    desc = L["Влияет на то, какие данные Blizzard готовит для отображения (CVar)"],
                     type = "select",
                     order = 3,
                     values = {
-                        ["VALUE"] = "Цифры",
-                        ["PERCENT"] = "Проценты",
-                        ["NONE"] = "Скрыть"
+                        ["VALUE"] = L["Цифры"],
+                        ["PERCENT"] = L["Проценты"],
+                        ["NONE"] = L["Скрыть"]
                     },
                     get = function() return msh.db.profile.global.hpMode end,
                     set = function(_, v)
@@ -1395,8 +1405,8 @@ ns.options = {
                     end,
                 },
                 raidClassColor = {
-                    name = "Цвета классов",
-                    desc = "Включает окрашивание фреймов в цвета классов (CVar)",
+                    name = L["Цвета классов"],
+                    desc = L["Включает окрашивание фреймов в цвета классов (CVar)"],
                     type = "toggle",
                     order = 4,
                     get = function() return msh.db.profile.global.raidClassColor end,
@@ -1418,14 +1428,14 @@ ns.options = {
             }
         },
         partyTab = {
-            name = "|cff00ff00Группа (Party)|r",
+            name = "|cff00ff00Party|r",
             type = "group",
             order = 2,
             childGroups = "tree",
             args = {}
         },
         raidTab = {
-            name = "|cff00ffffРейд (Raid)|r",
+            name = "|cff00ffffRaid|r",
             type = "group",
             order = 3,
             childGroups = "tree",
@@ -1451,22 +1461,22 @@ function msh:OnInitialize()
     end
 
     ns.options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
-    ns.options.args.profiles.name = "Профили"
+    ns.options.args.profiles.name = L["Профили"]
     ns.options.args.profiles.order = 100
     ns.options.args.profiles.args.exportHeader = {
         type = "header",
-        name = "Экспорт профиля",
+        name = L["Экспорт профиля"],
         order = 101,
     }
     ns.options.args.profiles.args.importExportHeader = {
         type = "header",
-        name = "Экспорт и Импорт (строка)",
+        name = L["Экспорт и Импорт (строка)"],
         order = 110,
     }
 
     ns.options.args.profiles.args.exportBox = {
         type = "input",
-        name = "Экспорт",
+        name = L["Экспорт"],
         order = 111,
         width = "full",
         get = function() return msh:GetExportString() end,
@@ -1475,13 +1485,13 @@ function msh:OnInitialize()
 
     ns.options.args.profiles.args.importBox = {
         type = "input",
-        name = "Импорт",
+        name = L["Импорт"],
         order = 112,
         width = "full",
         get = function() return "" end,
         set = function(info, value) msh:ImportProfileFromString(value) end,
         confirm = true,
-        confirmText = "Вы уверены, что хотите перезаписать текущий профиль этими настройками?",
+        confirmText = L["Вы уверены, что хотите перезаписать текущий профиль этими настройками?"],
     }
 
     self:RefreshMenu()
@@ -1498,7 +1508,7 @@ function msh:OnInitialize()
         AceConfigDialog:SetDefaultSize("mshFrames", 1000, 600)
         AceConfigDialog:Open("mshFrames")
     end
-    print("|cff00ff00mshFrames загружен!|r Используйте |cffffff00/msh|r для настройки.")
+    print(string.format(L["LOAD_MESSAGE"], L["mshFrames"], "/msh"))
 end
 
 function msh:RefreshMenu()
@@ -1607,7 +1617,7 @@ function msh:ImportProfileFromString(str)
 
     local data = str:match("MSH:(.+)")
     if not data then
-        print("Ошибка: Неверный формат строки!"); return
+        print("Cannot parse string"); return
     end
 
     local decoded = LibD:DecodeForPrint(data)
@@ -1619,9 +1629,9 @@ function msh:ImportProfileFromString(str)
             self.db.profile[k] = v
         end
         self:RefreshConfig()
-        print("Профиль успешно импортирован!")
+        print("Profile imported!")
     else
-        print("Ошибка при десериализации данных.")
+        print("Cannot parse string")
     end
 end
 
