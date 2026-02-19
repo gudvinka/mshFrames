@@ -67,13 +67,24 @@ function msh.UpdateHealthDisplay(frame)
     if frame.healthBar:GetStatusBarTexture():GetTexture() ~= texturePath then
         frame.healthBar:SetStatusBarTexture(texturePath)
     end
+    local blizzText = frame.statusText and frame.statusText:GetText() or ""
+    local unit = frame.displayedUnit or frame.unit
 
-    if cfg.hpMode == "NONE" then
-        if frame.mshHP then frame.mshHP:Hide() end
+    if msh.db.profile.global.hpMode == "NONE" then
+        local isDead = unit and UnitExists(unit) and UnitIsDeadOrGhost(unit)
+        local isConnected = unit and UnitIsConnected(unit)
+
+        if isDead or not isConnected then
+            frame.mshHP:SetFont(fontPath, cfg.fontSizeStatus, cfg.statusOutline)
+            frame.mshHP:ClearAllPoints()
+            frame.mshHP:SetPoint(cfg.statusPoint or "TOP", frame, cfg.statusX or 0, cfg.statusY or 0)
+            frame.mshHP:SetText(blizzText)
+            frame.mshHP:Show()
+        else
+            frame.mshHP:SetText("")
+            frame.mshHP:Hide()
+        end
     else
-        local blizzText = frame.statusText and frame.statusText:GetText() or ""
-        local fontPath = LSM:Fetch("font", cfg.fontStatus or "Friz Quadrata TT")
-
         frame.mshHP:SetFont(fontPath, cfg.fontSizeStatus, cfg.statusOutline)
         frame.mshHP:ClearAllPoints()
         frame.mshHP:SetPoint(cfg.statusPoint or "TOP", frame, cfg.statusX or 0, cfg.statusY or 0)
