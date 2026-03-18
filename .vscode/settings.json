@@ -56,6 +56,20 @@
         "EditModeManagerFrame",
         "LE_PARTY_CATEGORY_HOME",
         "RaidFrame",
-        "DebuffTypeColor"
+        "DebuffTypeColor",
+        "SetCVar",
+        "UIParent",
+        "NORMAL_FONT_COLOR",
+        "GameFontNormal",
+        "GameFontHighlight",
+        "GameFontHighlightLarge",
+        "GameFontHighlightSmall",
+        "GameFontDisableSmall",
+        "GameTooltip",
+        "GameFontNormalSmall",
+        "WOW_PROJECT_ID",
+        "WOW_PROJECT_MAINLINE",
+        "ChatFontNormal",
+        "BackdropTemplateMixin"
     ]
 }

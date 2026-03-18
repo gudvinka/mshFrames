@@ -23,9 +23,16 @@ end
 
 function msh.GetShortName(unit, maxChars)
     if not unit or not UnitExists(unit) then return "" end
-    local name = UnitName(unit) or ""
+    local name = UnitName(unit)
+    if not name then return "" end
 
-    if maxChars and maxChars > 0 and #name > maxChars then
+    local success, length = pcall(function() return #name end)
+
+    if not success then
+        return name
+    end
+
+    if maxChars and maxChars > 0 and length > maxChars then
         return utf8sub(name, 1, maxChars)
     end
 
