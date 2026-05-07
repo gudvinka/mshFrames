@@ -1,0 +1,10 @@
+package-as: mshFrames
+
+ignore:
+  - .github
+  - .vscode
+  - .gitignore
+  - .pkgmeta
+  - README.md
+  - LICENSE
+  - curseprojectid.txt
