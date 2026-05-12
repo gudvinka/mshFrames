@@ -1446,20 +1446,23 @@ ns.options = {
 
 function msh:OnInitialize()
     local customFonts = {
-        ["Montserrat-SemiBold"] = "Interface\\AddOns\\mshFrames\\Media\\Montserrat-SemiBold.ttf",
-        ["theo"] = "Interface\\AddOns\\mshFrames\\Media\\theo.ttf",
+        ["Montserrat-SemiBold"] = "Interface/AddOns/mshFrames/Media/Montserrat-SemiBold.ttf",
+        ["theo"] = "Interface/AddOns/mshFrames/Media/theo.ttf",
     }
     for fontName, fontPath in pairs(customFonts) do
-        LSM:Register("font", fontName, fontPath)
-
-        if AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font then
-            if not AceGUIWidgetLSMlists.font[fontName] then
-                AceGUIWidgetLSMlists.font[fontName] = fontName
-            end
+        local registered = LSM:Register("font", fontName, fontPath)
+        if registered then
+            print("|cff00ff00mshFrames:|r Шрифт зарегистрирован: " .. fontName)
+        else
+            print("|cffff0000mshFrames Error:|r Не удалось зарегистрировать: " .. fontName .. " по пути: " .. fontPath)
         end
     end
 
     self.db = LibStub("AceDB-3.0"):New("mshFramesDB", ns.defaults, true)
+    self:ValidateProfileFonts()
+    if self.SetupConfig then
+        self:SetupConfig()
+    end
 
     if not self.db.profile.global then
         self.db.profile.global = {
@@ -1510,7 +1513,10 @@ function msh:OnInitialize()
     self.db.RegisterCallback(msh, "OnProfileReset", "RefreshConfig")
 
     AceConfig:RegisterOptionsTable("mshFrames", ns.options)
-    self.optionsFrame = AceConfigDialog:AddToBlizOptions("mshFrames", "mshFrames")
+    if not self.optionsRegistered then
+        AceConfigDialog:AddToBlizOptions("mshFrames", "mshFrames")
+        self.optionsRegistered = true
+    end
 
     SLASH_MSH1 = "/msh"
     SlashCmdList["MSH"] = function()
@@ -1645,7 +1651,7 @@ function msh:ImportProfileFromString(str)
 end
 
 function msh:SetupConfig()
-    self.db = LibStub("AceDB-3.0"):New("mshFramesDB", ns.defaults, true)
+    self:ValidateProfileFonts()
     self.db.RegisterCallback(msh, "OnProfileReset", "RefreshConfig")
     self.db.RegisterCallback(msh, "OnProfileChanged", "RefreshConfig")
     self.db.RegisterCallback(msh, "OnProfileCopied", "RefreshConfig")
@@ -1660,5 +1666,4 @@ function msh:SetupConfig()
     }
 
     AceConfig:RegisterOptionsTable("mshFrames", options)
-    self.optionsFrame = AceConfigDialog:AddToBlizOptions("mshFrames", "mshFrames")
 end

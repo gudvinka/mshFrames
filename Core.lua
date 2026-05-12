@@ -10,9 +10,31 @@ function msh.SafeSetFont(fontString, path, size, outline)
     outline = outline or ""
     if outline == "NONE" then outline = "" end
 
-    local success = pcall(fontString.SetFont, fontString, path, size, outline)
+    local success, err = pcall(fontString.SetFont, fontString, path, size, outline)
+
     if not success then
+        print("|cffff0000mshFrames Font Error:|r " .. tostring(err))
+        print("|cffff0000Requested Path:|r " .. tostring(path))
         fontString:SetFont("Fonts\\FRIZQT__.TTF", size, outline)
+    end
+end
+
+function msh:ValidateProfileFonts()
+    local db = self.db.profile
+    if not db then return end
+
+    local fontKeys = { "fontName", "fontStatus", "fontBigSaveTimer" }
+    local categories = { db.raid, db.party }
+
+    for _, cfg in ipairs(categories) do
+        if cfg then
+            for _, key in ipairs(fontKeys) do
+                local currentFont = cfg[key]
+                if currentFont and not LibStub("LibSharedMedia-3.0"):Fetch("font", currentFont) then
+                    cfg[key] = "Friz Quadrata TT"
+                end
+            end
+        end
     end
 end
 
