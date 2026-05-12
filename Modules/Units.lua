@@ -46,7 +46,7 @@ function msh.UpdateUnitDisplay(frame)
     frame.mshName:ClearAllPoints()
     frame.mshName:SetPoint(cfg.namePoint or "CENTER", frame, cfg.nameX or 0, cfg.nameY or 0)
 
-    frame.mshName:SetFont(fontPath, fontSize, fontOutline)
+    msh.SafeSetFont(frame.mshName, fontPath, fontSize, fontOutline)
     frame.mshName:SetTextColor(1, 1, 1)
 
     if frame.name then frame.name:SetAlpha(0) end

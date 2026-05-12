@@ -1445,10 +1445,19 @@ ns.options = {
 }
 
 function msh:OnInitialize()
-    local fontName = "Montserrat-SemiBold"
-    local fontPath = "Interface\\AddOns\\mshFrames\\Media\\Montserrat-SemiBold.ttf"
-    LSM:Register("font", fontName, fontPath)
-    if not AceGUIWidgetLSMlists.font[fontName] then AceGUIWidgetLSMlists.font[fontName] = fontName end
+    local customFonts = {
+        ["Montserrat-SemiBold"] = "Interface\\AddOns\\mshFrames\\Media\\Montserrat-SemiBold.ttf",
+        ["theo"] = "Interface\\AddOns\\mshFrames\\Media\\theo.ttf",
+    }
+    for fontName, fontPath in pairs(customFonts) do
+        LSM:Register("font", fontName, fontPath)
+
+        if AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font then
+            if not AceGUIWidgetLSMlists.font[fontName] then
+                AceGUIWidgetLSMlists.font[fontName] = fontName
+            end
+        end
+    end
 
     self.db = LibStub("AceDB-3.0"):New("mshFramesDB", ns.defaults, true)
 

@@ -2,6 +2,20 @@ local addonName, ns = ...
 
 local msh = LibStub("AceAddon-3.0"):NewAddon(ns, addonName, "AceEvent-3.0")
 
+function msh.SafeSetFont(fontString, path, size, outline)
+    if not path or path == "" then
+        path = "Fonts\\FRIZQT__.TTF"
+    end
+    size = size or 10
+    outline = outline or ""
+    if outline == "NONE" then outline = "" end
+
+    local success = pcall(fontString.SetFont, fontString, path, size, outline)
+    if not success then
+        fontString:SetFont("Fonts\\FRIZQT__.TTF", size, outline)
+    end
+end
+
 function msh.GetConfigForFrame(frame)
     if not msh.db or not msh.db.profile then
         return {}

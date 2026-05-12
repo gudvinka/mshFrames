@@ -75,7 +75,7 @@ function msh.UpdateHealthDisplay(frame)
         local isConnected = unit and UnitIsConnected(unit)
 
         if isDead or not isConnected then
-            frame.mshHP:SetFont(fontPath, cfg.fontSizeStatus, cfg.statusOutline)
+            msh.SafeSetFont(frame.mshHP, fontPath, cfg.fontSizeStatus, cfg.statusOutline)
             frame.mshHP:ClearAllPoints()
             frame.mshHP:SetPoint(cfg.statusPoint or "TOP", frame, cfg.statusX or 0, cfg.statusY or 0)
             frame.mshHP:SetText(blizzText)
@@ -85,7 +85,7 @@ function msh.UpdateHealthDisplay(frame)
             frame.mshHP:Hide()
         end
     else
-        frame.mshHP:SetFont(fontPath, cfg.fontSizeStatus, cfg.statusOutline)
+        msh.SafeSetFont(frame.mshHP, fontPath, cfg.fontSizeStatus, cfg.statusOutline)
         frame.mshHP:ClearAllPoints()
         frame.mshHP:SetPoint(cfg.statusPoint or "TOP", frame, cfg.statusX or 0, cfg.statusY or 0)
         frame.mshHP:SetText(blizzText)
