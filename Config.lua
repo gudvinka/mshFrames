@@ -854,6 +854,17 @@ local function GetUnitGroups(path)
             type = "group",
             order = 2,
             args = {
+                colorNameByClass = {
+                    type = "toggle",
+                    name = L["Цвет класса"],
+                    desc = L["Окрашивать имя в цвет класса игрока"],
+                    order = 0,
+                    get = function() return path.colorNameByClass end,
+                    set = function(_, v)
+                        path.colorNameByClass = v
+                        msh:Refresh()
+                    end,
+                },
                 fontName = {
                     type = "select",
                     name = L["Шрифт"],

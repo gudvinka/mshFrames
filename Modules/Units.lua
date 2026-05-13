@@ -42,12 +42,20 @@ function msh.UpdateUnitDisplay(frame)
     local displayName = msh.GetShortName(unit, maxChars)
     frame.mshName:SetText(displayName)
 
+    if cfg.colorNameByClass then
+        local _, class = UnitClass(unit)
+        local c = RAID_CLASS_COLORS[class] or { r = 1, g = 1, b = 1 }
+        frame.mshName:SetTextColor(c.r, c.g, c.b)
+    else
+        frame.mshName:SetTextColor(1, 1, 1)
+    end
+
 
     frame.mshName:ClearAllPoints()
     frame.mshName:SetPoint(cfg.namePoint or "CENTER", frame, cfg.nameX or 0, cfg.nameY or 0)
 
     msh.SafeSetFont(frame.mshName, fontPath, fontSize, fontOutline)
-    frame.mshName:SetTextColor(1, 1, 1)
+    -- frame.mshName:SetTextColor(1, 1, 1)
 
     if frame.name then frame.name:SetAlpha(0) end
     frame.mshName:Show()

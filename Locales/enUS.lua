@@ -104,3 +104,5 @@ L["Здоровье"] = "Health"
 L["Вы уверены, что хотите перезаписать текущий профиль этими настройками?"] =
 "Are you sure you want to overwrite the current profile with these settings?"
 L["Включить метки"] = "Enable Markers"
+L["Цвет класса"] = "Class Color"
+L["Окрашивать имя в цвет класса игрока"] = "Color name by player's class"
