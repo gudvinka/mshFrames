@@ -1451,11 +1451,6 @@ function msh:OnInitialize()
     }
     for fontName, fontPath in pairs(customFonts) do
         local registered = LSM:Register("font", fontName, fontPath)
-        if registered then
-            print("|cff00ff00mshFrames:|r Шрифт зарегистрирован: " .. fontName)
-        else
-            print("|cffff0000mshFrames Error:|r Не удалось зарегистрировать: " .. fontName .. " по пути: " .. fontPath)
-        end
     end
 
     self.db = LibStub("AceDB-3.0"):New("mshFramesDB", ns.defaults, true)

@@ -13,8 +13,6 @@ function msh.SafeSetFont(fontString, path, size, outline)
     local success, err = pcall(fontString.SetFont, fontString, path, size, outline)
 
     if not success then
-        print("|cffff0000mshFrames Font Error:|r " .. tostring(err))
-        print("|cffff0000Requested Path:|r " .. tostring(path))
         fontString:SetFont("Fonts\\FRIZQT__.TTF", size, outline)
     end
 end
